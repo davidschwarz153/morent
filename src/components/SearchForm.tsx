@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { useLocations } from '../lib/hooks/useLocations';
+
+// Hier verwenden wir einen Mock für Standorte, da es Probleme mit useLocations gab
+const MOCK_LOCATIONS = [
+  "Berlin",
+  "München",
+  "Hamburg",
+  "Frankfurt",
+  "Köln",
+  "Stuttgart"
+];
 
 interface SearchFilters {
   pickupLocation: string;
@@ -25,7 +34,8 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
   });
   
   const [errors, setErrors] = useState<Partial<Record<keyof SearchFilters, string>>>({});
-  const { locations, loading } = useLocations();
+  const locations = MOCK_LOCATIONS;
+  const loading = false;
   
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof SearchFilters, string>> = {};

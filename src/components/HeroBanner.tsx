@@ -1,45 +1,57 @@
-import React from 'react';
-
 export default function HeroBanner() {
   return (
-    <div className="relative bg-blue-600 text-white rounded-lg overflow-hidden">
-      <div className="absolute right-0 top-0 w-1/2 h-full">
-        <img
-          src="/hero-car.jpg"
-          alt="Luxusauto"
-          className="w-full h-full object-cover object-center"
-          onError={(e) => {
-            e.currentTarget.src = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80';
-          }}
-        />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Erster Banner */}
+      <div className="relative overflow-hidden rounded-lg bg-blue-600 text-white p-6">
+        <div className="flex flex-col justify-between h-full relative z-10">
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold mb-2">Der beste Platz, um ein Auto zu mieten</h2>
+            <p className="text-blue-100 text-sm md:text-base">
+              Finden Sie für jeden Anlass das perfekte Fahrzeug
+            </p>
+          </div>
+          
+          <div>
+            <button className="bg-white text-blue-600 font-medium px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors">
+              Buchen Sie jetzt
+            </button>
+          </div>
+        </div>
+        
+        {/* Hintergrundbild */}
+        <div className="absolute top-0 right-0 w-2/3 h-full opacity-30 md:opacity-50">
+          <img
+            src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60"
+            alt="Luxus-Auto"
+            className="w-full h-full object-cover"
+          />
+        </div>
       </div>
       
-      <div className="relative z-10 max-w-3xl px-8 py-16">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          Finden Sie Ihr perfektes Mietauto
-        </h1>
-        <p className="text-lg md:text-xl mb-8 text-blue-100">
-          Große Auswahl an Qualitätsfahrzeugen für jeden Anlass. Einfache Buchung, flexible Konditionen.
-        </p>
-        <div className="flex flex-wrap gap-4">
-          <div className="flex items-center bg-white bg-opacity-10 px-4 py-2 rounded-lg">
-            <svg className="w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <span>Keine versteckten Gebühren</span>
+      {/* Zweiter Banner */}
+      <div className="relative overflow-hidden rounded-lg bg-violet-700 text-white p-6">
+        <div className="flex flex-col justify-between h-full relative z-10">
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold mb-2">Fahren leicht gemacht</h2>
+            <p className="text-violet-100 text-sm md:text-base">
+              Einfache Buchung, schnelle Bereitstellung
+            </p>
           </div>
-          <div className="flex items-center bg-white bg-opacity-10 px-4 py-2 rounded-lg">
-            <svg className="w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>24/7 Kundenservice</span>
+          
+          <div>
+            <button className="bg-white text-violet-700 font-medium px-4 py-2 rounded-lg hover:bg-violet-50 transition-colors">
+              Mehr erfahren
+            </button>
           </div>
-          <div className="flex items-center bg-white bg-opacity-10 px-4 py-2 rounded-lg">
-            <svg className="w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Kostenlose Stornierung</span>
-          </div>
+        </div>
+        
+        {/* Hintergrundbild */}
+        <div className="absolute top-0 right-0 w-2/3 h-full opacity-30 md:opacity-50">
+          <img
+            src="https://images.unsplash.com/photo-1494905998402-395d579af36f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60"
+            alt="Luxus-Auto"
+            className="w-full h-full object-cover"
+          />
         </div>
       </div>
     </div>

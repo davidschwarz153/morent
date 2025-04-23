@@ -1,39 +1,45 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
-import { supabase } from '../lib/supabase'
+import React, { useState, useEffect } from 'react'
 
-function Home() {
-  const [data, setData] = useState<any>(null)
+export default function Home() {
+  const [data, setData] = useState<{ message: string }>({ message: 'Willkommen bei Morent!' })
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    // Beispiel für Axios-Aufruf
-    async function fetchData() {
+    // Beispiel für Datenabfrage mit fetch
+    const fetchData = async () => {
       try {
-        const response = await axios.get('https://jsonplaceholder.typicode.com/posts/1')
-        setData(response.data)
+        setLoading(true)
+        // Hier würde normalerweise eine API-Anfrage erfolgen
+        // Beispiel:
+        // const response = await fetch('https://api.example.com/data')
+        // const result = await response.json()
+        // setData(result)
+        
+        // Simuliere eine erfolgreiche Antwort
+        setTimeout(() => {
+          setData({ message: 'Daten erfolgreich geladen!' })
+          setLoading(false)
+        }, 1000)
       } catch (error) {
-        console.error('Fehler beim Abrufen der Daten:', error)
+        console.error('Fehler beim Laden der Daten:', error)
+        setLoading(false)
       }
     }
 
-    fetchData()
+    // fetchData() - Auskommentiert, um unnötige Aufrufe zu vermeiden
   }, [])
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8">Mein React-Projekt</h1>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Daten von API:</h2>
-          {data ? (
-            <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(data, null, 2)}</pre>
-          ) : (
-            <p>Lade Daten...</p>
-          )}
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Morent Home</h1>
+      
+      {loading ? (
+        <p>Daten werden geladen...</p>
+      ) : (
+        <div className="bg-white p-4 rounded shadow">
+          <p>{data.message}</p>
         </div>
-      </div>
+      )}
     </div>
   )
-}
-
-export default Home 
+} 

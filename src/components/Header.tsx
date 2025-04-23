@@ -1,14 +1,23 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Header() {
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+  
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (searchTerm.trim()) {
+      navigate(`/search?query=${encodeURIComponent(searchTerm)}`);
+    }
+  };
   
   return (
     <header className="flex items-center justify-between p-4 border-b border-gray-200">
       <Link to="/" className="text-blue-500 font-bold text-2xl">MORENT</Link>
       
-      <div className="relative w-1/3">
+      <form onSubmit={handleSearch} className="relative w-1/3">
         <input
           type="text"
           placeholder="Suchen Sie hier..."
@@ -31,9 +40,13 @@ export default function Header() {
             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
           />
         </svg>
-      </div>
+        <button type="submit" className="hidden">Suchen</button>
+      </form>
       
       <div className="flex items-center space-x-4">
+        <Link to="/search" className="text-gray-600 hover:text-blue-600 transition-colors">
+          Erweiterte Suche
+        </Link>
         <button className="text-gray-600 relative">
           <svg
             width="24"

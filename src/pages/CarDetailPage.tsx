@@ -4,7 +4,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getVehicleById, Review } from '../lib/supabase';
 import { Vehicle } from '../lib/supabase';
-import { FaStar, FaGasPump, FaCar, FaCog, FaUserFriends, FaHeart } from 'react-icons/fa';
+import { FaStar } from 'react-icons/fa';
 import { MdOutlineArrowBackIos } from 'react-icons/md';
 
 // Erweiterten Vehicle-Typ definieren, der Reviews enthält

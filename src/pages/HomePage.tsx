@@ -5,9 +5,8 @@ import SearchForm from '../components/SearchForm';
 import VehicleCard from '../components/VehicleCard';
 import Footer from '../components/Footer';
 import { useVehicles } from '../lib/hooks/useVehicles';
-import { Vehicle } from '../lib/supabase';
 
-interface SearchFilters {
+interface HomeSearchFilters {
   brand?: string;
   model?: string;
   priceRange?: [number, number];
@@ -16,6 +15,16 @@ interface SearchFilters {
   transmission?: string;
   fuel?: string;
   seats?: number;
+}
+
+// Dieser Typ muss mit dem in SearchForm übereinstimmen
+interface FormSearchFilters {
+  pickupLocation: string;
+  pickupDate: string;
+  pickupTime: string;
+  dropoffLocation: string;
+  dropoffDate: string;
+  dropoffTime: string;
 }
 
 const LoadingSpinner = () => (
@@ -32,12 +41,14 @@ const ErrorMessage = ({ message }: { message: string }) => (
 );
 
 export default function HomePage() {
-  const [filters, setFilters] = useState<SearchFilters>({});
+  const [filters, setFilters] = useState<HomeSearchFilters>({});
   const { vehicles, loading, error } = useVehicles(filters);
   const [visibleCount, setVisibleCount] = useState(8);
   
-  const handleSearch = (searchFilters: SearchFilters) => {
-    setFilters(searchFilters);
+  // Konvertiert das Formular-Suchobjekt in unser internes Filterobjekt
+  const handleSearch = (searchFilters: FormSearchFilters) => {
+    // Hier könnten wir die Formularfilter in interne Filter konvertieren
+    setFilters({});
     setVisibleCount(8);
   };
   

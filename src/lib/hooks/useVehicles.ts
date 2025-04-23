@@ -47,6 +47,9 @@ export function useVehicles(filters?: VehicleFilters) {
               case "location":
                 query = query.contains("locations", [value]);
                 break;
+              case "vehicletype":
+                query = query.ilike("vehicletype", `%${value}%`);
+                break;
               default:
                 query = query.eq(key, value);
             }
