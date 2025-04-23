@@ -1,0 +1,221 @@
+import { useState } from 'react';
+import { useLocations } from '../lib/hooks/useLocations';
+
+interface SearchFilters {
+  pickupLocation: string;
+  pickupDate: string;
+  pickupTime: string;
+  dropoffLocation: string;
+  dropoffDate: string;
+  dropoffTime: string;
+}
+
+interface SearchFormProps {
+  onSearch: (filters: SearchFilters) => void;
+}
+
+export default function SearchForm({ onSearch }: SearchFormProps) {
+  const [filters, setFilters] = useState<SearchFilters>({
+    pickupLocation: '',
+    pickupDate: '',
+    pickupTime: '',
+    dropoffLocation: '',
+    dropoffDate: '',
+    dropoffTime: ''
+  });
+  
+  const [errors, setErrors] = useState<Partial<Record<keyof SearchFilters, string>>>({});
+  const { locations, loading } = useLocations();
+  
+  const validateForm = (): boolean => {
+    const newErrors: Partial<Record<keyof SearchFilters, string>> = {};
+    
+    if (!filters.pickupLocation) {
+      newErrors.pickupLocation = 'Bitte wählen Sie einen Abholort';
+    }
+    
+    if (!filters.pickupDate) {
+      newErrors.pickupDate = 'Bitte wählen Sie ein Abholdatum';
+    }
+    
+    if (!filters.pickupTime) {
+      newErrors.pickupTime = 'Bitte wählen Sie eine Abholzeit';
+    }
+    
+    if (!filters.dropoffLocation) {
+      newErrors.dropoffLocation = 'Bitte wählen Sie einen Rückgabeort';
+    }
+    
+    if (!filters.dropoffDate) {
+      newErrors.dropoffDate = 'Bitte wählen Sie ein Rückgabedatum';
+    }
+    
+    if (!filters.dropoffTime) {
+      newErrors.dropoffTime = 'Bitte wählen Sie eine Rückgabezeit';
+    }
+    
+    // Datumvalidierung
+    const pickupDateTime = new Date(`${filters.pickupDate}T${filters.pickupTime}`);
+    const dropoffDateTime = new Date(`${filters.dropoffDate}T${filters.dropoffTime}`);
+    
+    if (pickupDateTime >= dropoffDateTime) {
+      newErrors.dropoffDate = 'Rückgabedatum muss nach Abholdatum liegen';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  
+  const handleChange = (field: keyof SearchFilters, value: string) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+    // Fehler für dieses Feld zurücksetzen
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+  
+  const handleSearch = () => {
+    if (validateForm()) {
+      onSearch(filters);
+    }
+  };
+  
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 className="font-semibold text-lg mb-4">Abholung</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Ort
+              </label>
+              <select 
+                className={`w-full p-2 border rounded-md ${
+                  errors.pickupLocation ? 'border-red-500' : 'border-gray-300'
+                } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                value={filters.pickupLocation}
+                onChange={(e) => handleChange('pickupLocation', e.target.value)}
+                disabled={loading}
+              >
+                <option value="">Bitte wählen</option>
+                {locations.map(location => (
+                  <option key={location} value={location}>{location}</option>
+                ))}
+              </select>
+              {errors.pickupLocation && (
+                <p className="mt-1 text-sm text-red-500">{errors.pickupLocation}</p>
+              )}
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Datum
+              </label>
+              <input 
+                type="date" 
+                className={`w-full p-2 border rounded-md ${
+                  errors.pickupDate ? 'border-red-500' : 'border-gray-300'
+                } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                value={filters.pickupDate}
+                onChange={(e) => handleChange('pickupDate', e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+              />
+              {errors.pickupDate && (
+                <p className="mt-1 text-sm text-red-500">{errors.pickupDate}</p>
+              )}
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Uhrzeit
+              </label>
+              <input 
+                type="time" 
+                className={`w-full p-2 border rounded-md ${
+                  errors.pickupTime ? 'border-red-500' : 'border-gray-300'
+                } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                value={filters.pickupTime}
+                onChange={(e) => handleChange('pickupTime', e.target.value)}
+              />
+              {errors.pickupTime && (
+                <p className="mt-1 text-sm text-red-500">{errors.pickupTime}</p>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h3 className="font-semibold text-lg mb-4">Rückgabe</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Ort
+              </label>
+              <select 
+                className={`w-full p-2 border rounded-md ${
+                  errors.dropoffLocation ? 'border-red-500' : 'border-gray-300'
+                } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                value={filters.dropoffLocation}
+                onChange={(e) => handleChange('dropoffLocation', e.target.value)}
+                disabled={loading}
+              >
+                <option value="">Bitte wählen</option>
+                {locations.map(location => (
+                  <option key={location} value={location}>{location}</option>
+                ))}
+              </select>
+              {errors.dropoffLocation && (
+                <p className="mt-1 text-sm text-red-500">{errors.dropoffLocation}</p>
+              )}
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Datum
+              </label>
+              <input 
+                type="date" 
+                className={`w-full p-2 border rounded-md ${
+                  errors.dropoffDate ? 'border-red-500' : 'border-gray-300'
+                } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                value={filters.dropoffDate}
+                onChange={(e) => handleChange('dropoffDate', e.target.value)}
+                min={filters.pickupDate || new Date().toISOString().split('T')[0]}
+              />
+              {errors.dropoffDate && (
+                <p className="mt-1 text-sm text-red-500">{errors.dropoffDate}</p>
+              )}
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Uhrzeit
+              </label>
+              <input 
+                type="time" 
+                className={`w-full p-2 border rounded-md ${
+                  errors.dropoffTime ? 'border-red-500' : 'border-gray-300'
+                } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                value={filters.dropoffTime}
+                onChange={(e) => handleChange('dropoffTime', e.target.value)}
+              />
+              {errors.dropoffTime && (
+                <p className="mt-1 text-sm text-red-500">{errors.dropoffTime}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="mt-6 text-center">
+        <button
+          onClick={handleSearch}
+          className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        >
+          Fahrzeuge suchen
+        </button>
+      </div>
+    </div>
+  );
+} 
