@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getVehicleById, Review } from '../lib/supabase';
@@ -22,6 +22,7 @@ export default function CarDetailPage() {
   const [vehicle, setVehicle] = useState<VehicleWithReviews | null>(null);
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function loadVehicle() {
@@ -45,6 +46,12 @@ export default function CarDetailPage() {
 
     loadVehicle();
   }, [id]);
+
+  const handleRentClick = () => {
+    if (id) {
+      navigate(`/payment/${id}`);
+    }
+  };
 
   if (loading) {
     return (
@@ -219,7 +226,10 @@ export default function CarDetailPage() {
                 <span className="text-xl font-bold">${carData.price}</span>
                 <span className="text-gray-500">/Tag</span>
               </div>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+              <button 
+                onClick={handleRentClick}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+              >
                 Jetzt mieten
               </button>
             </div>
