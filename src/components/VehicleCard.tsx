@@ -1,13 +1,23 @@
 import { useState } from 'react';
 import { Vehicle } from '../lib/supabase';
+import { useNavigate } from 'react-router-dom';
 
 type VehicleCardProps = {
   vehicle: Vehicle;
-  onRentClick: (vehicle: Vehicle) => void;
+  onRentClick?: (vehicle: Vehicle) => void;
 };
 
 export default function VehicleCard({ vehicle, onRentClick }: VehicleCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
+  const navigate = useNavigate();
+  
+  const handleRentClick = () => {
+    if (onRentClick) {
+      onRentClick(vehicle);
+    } else {
+      navigate(`/cars/${vehicle.id}`);
+    }
+  };
   
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
@@ -56,12 +66,12 @@ export default function VehicleCard({ vehicle, onRentClick }: VehicleCardProps) 
             <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
-            {vehicle.transmission}
+            {vehicle.geartype}
           </div>
         </div>
         
         <button
-          onClick={() => onRentClick(vehicle)}
+          onClick={handleRentClick}
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
         >
           Jetzt mieten

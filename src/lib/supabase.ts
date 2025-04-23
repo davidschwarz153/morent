@@ -23,42 +23,36 @@ export type Vehicle = {
   model: string;
   year: number;
   vehicletype: string;
-  colors: string[];
+  colors: string;
   locations: string[];
   priceperday: number;
   availability: boolean;
-  electricVehicle: boolean;
+  electricvehicle: boolean;
   carimg: string;
   seats: number;
   luggage: number;
-  horsepower: number;
-  transmission: string;
+  horstpower: string;
+  ps: number;
   consumption: string;
   fuel: string;
+  geartype: string;
   created_at: string;
-  updated_at: string;
 };
 
 export type Location = {
   id: string;
-  name: string;
-  address: string;
-  city: string;
-  postal_code: string;
-  country: string;
+  locations: string[];
   created_at: string;
-  updated_at: string;
 };
 
 export type Review = {
   id: string;
   vehicleid: string;
-  user_id: string;
-  user_name: string;
-  rating: number;
-  comment: string;
+  name: string;
+  text: string;
+  stars: number;
+  date: string;
   created_at: string;
-  updated_at: string;
 };
 
 export type Booking = {
@@ -130,11 +124,12 @@ export const getLocations = async () => {
 
 export const getReviews = async (vehicleId: string) => {
   try {
+    // Versuche zuerst mit vehicle.vehicleid
     const { data, error } = await supabase
       .from("reviews")
       .select("*")
-      .eq("vehicle_id", vehicleId)
-      .order("created_at", { ascending: false });
+      .eq("vehicleid", vehicleId)
+      .order("date", { ascending: false });
 
     if (error) {
       console.error("Supabase-Fehler beim Laden der Bewertungen:", error);
@@ -176,6 +171,175 @@ export const createBooking = async (
     return data as Booking;
   } catch (err) {
     console.error("Unerwarteter Fehler beim Erstellen der Buchung:", err);
+    throw err;
+  }
+};
+
+export const getVehicleById = async (id: string) => {
+  try {
+    // Zuerst das Fahrzeug laden
+    const { data: vehicleData, error: vehicleError } = await supabase
+      .from("vehicles")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (vehicleError) {
+      console.error("Supabase-Fehler beim Laden des Fahrzeugs:", vehicleError);
+      throw new Error(
+        `Fehler beim Laden des Fahrzeugs: ${vehicleError.message}`
+      );
+    }
+
+    if (!vehicleData) {
+      console.warn("Kein Fahrzeug mit ID", id, "gefunden");
+      return null;
+    }
+
+    // Dann die zugehörigen Reviews laden
+    const { data: reviewsData, error: reviewsError } = await supabase
+      .from("reviews")
+      .select("*")
+      .eq("vehicleid", vehicleData.vehicleid)
+      .order("date", { ascending: false });
+
+    if (reviewsError) {
+      console.error(
+        "Supabase-Fehler beim Laden der Bewertungen:",
+        reviewsError
+      );
+      // Wir werfen hier keinen Fehler, sondern geben das Fahrzeug zurück, aber ohne Reviews
+    }
+
+    // Fahrzeug mit Reviews zurückgeben
+    return {
+      ...vehicleData,
+      reviews: reviewsData || [],
+      // Extrahiere Standorte direkt aus dem Vehicle-Objekt
+      locationCoordinates: extractLocationCoordinates(
+        vehicleData.locations || []
+      ),
+    } as Vehicle & { reviews: Review[]; locationCoordinates: any[] };
+  } catch (err) {
+    console.error("Unerwarteter Fehler beim Laden des Fahrzeugs:", err);
+    throw err;
+  }
+};
+
+// Hilfsfunktion zum Extrahieren von Koordinaten aus den Standortstrings
+// Format: Mannheim (49.489,8.467), Frankfurt (50.110,8.682)
+function extractLocationCoordinates(
+  locations: string[]
+): { name: string; lat: number; lng: number }[] {
+  const coordinates: { name: string; lat: number; lng: number }[] = [];
+
+  // Versuche aus den Einträgen Koordinaten zu extrahieren
+  locations.forEach((location) => {
+    try {
+      // Prüfen ob Koordinaten im Format "Stadt (lat,lng)" vorhanden sind
+      const match = location.match(/([^\(]+)\s*\(([0-9.]+),([0-9.]+)\)/);
+      if (match) {
+        coordinates.push({
+          name: match[1].trim(),
+          lat: parseFloat(match[2]),
+          lng: parseFloat(match[3]),
+        });
+      } else {
+        // Fallback: Wenn keine Koordinaten gefunden werden, verwende Standard-Koordinaten
+        // für verschiedene Städte
+        const cityCoordinates: { [key: string]: [number, number] } = {
+          mannheim: [49.489, 8.467],
+          frankfurt: [50.11, 8.682],
+          berlin: [52.52, 13.405],
+          hamburg: [53.551, 9.993],
+          münchen: [48.137, 11.576],
+          köln: [50.937, 6.96],
+        };
+
+        // Suche nach bekannten Städtenamen im Location-String
+        const lowerLocation = location.toLowerCase();
+        let found = false;
+
+        for (const [city, coords] of Object.entries(cityCoordinates)) {
+          if (lowerLocation.includes(city)) {
+            coordinates.push({
+              name: location,
+              lat: coords[0],
+              lng: coords[1],
+            });
+            found = true;
+            break;
+          }
+        }
+
+        // Wenn keine bekannte Stadt gefunden wurde, verwende Mannheim als Default
+        if (!found) {
+          coordinates.push({
+            name: location,
+            lat: 49.489,
+            lng: 8.467,
+          });
+        }
+      }
+    } catch (error) {
+      console.warn("Fehler beim Extrahieren der Koordinaten:", error);
+    }
+  });
+
+  return coordinates;
+}
+
+export const getVehicleLocation = async (locationId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("locations")
+      .select("*")
+      .eq("id", locationId)
+      .single();
+
+    if (error) {
+      console.error("Supabase-Fehler beim Laden des Standorts:", error);
+      throw new Error(`Fehler beim Laden des Standorts: ${error.message}`);
+    }
+
+    if (!data) {
+      console.warn("Kein Standort mit ID", locationId, "gefunden");
+      return null;
+    }
+
+    return data as Location;
+  } catch (err) {
+    console.error("Unerwarteter Fehler beim Laden des Standorts:", err);
+    throw err;
+  }
+};
+
+export const getVehicleLocations = async (vehicleId: string) => {
+  try {
+    // Zuerst das Fahrzeug laden, um die locations zu erhalten
+    const vehicle = await getVehicleById(vehicleId);
+
+    if (!vehicle) {
+      return [];
+    }
+
+    // Da wir das locations Array direkt im Vehicle haben,
+    // holen wir die Daten aus der locations Tabelle
+    const { data, error } = await supabase.from("locations").select("*");
+
+    if (error) {
+      console.error("Supabase-Fehler beim Laden der Locations:", error);
+      throw new Error(`Fehler beim Laden der Locations: ${error.message}`);
+    }
+
+    if (!data) {
+      console.warn("Keine Standortdaten gefunden");
+      return [];
+    }
+
+    return data as Location[];
+  } catch (err) {
+    console.error("Unerwarteter Fehler beim Laden der Standorte:", err);
     throw err;
   }
 };

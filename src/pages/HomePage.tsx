@@ -35,15 +35,10 @@ export default function HomePage() {
   const [filters, setFilters] = useState<SearchFilters>({});
   const { vehicles, loading, error } = useVehicles(filters);
   const [visibleCount, setVisibleCount] = useState(8);
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   
   const handleSearch = (searchFilters: SearchFilters) => {
     setFilters(searchFilters);
     setVisibleCount(8);
-  };
-  
-  const handleRentClick = (vehicle: Vehicle) => {
-    setSelectedVehicle(vehicle);
   };
   
   const loadMore = () => {
@@ -76,7 +71,6 @@ export default function HomePage() {
                 <VehicleCard
                   key={vehicle.id}
                   vehicle={vehicle}
-                  onRentClick={handleRentClick}
                 />
               ))}
             </div>
@@ -94,25 +88,6 @@ export default function HomePage() {
           </>
         )}
       </main>
-      
-      {selectedVehicle && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-semibold mb-4">
-              {selectedVehicle.brand} {selectedVehicle.model}
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Die Buchungsfunktion wird bald verfügbar sein!
-            </p>
-            <button
-              onClick={() => setSelectedVehicle(null)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Schließen
-            </button>
-          </div>
-        </div>
-      )}
       
       <Footer />
     </div>

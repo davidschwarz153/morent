@@ -3,13 +3,13 @@ import { supabase, Vehicle } from "../supabase";
 
 export interface VehicleFilters {
   brand?: string;
-  vehicle_type?: string;
+  vehicletype?: string;
   minPrice?: number;
   maxPrice?: number;
   location?: string;
   availability?: boolean;
-  electric_vehicle?: boolean;
-  transmission?: string;
+  electricvehicle?: boolean;
+  geartype?: string;
   seats?: number;
   luggage?: number;
 }
@@ -39,10 +39,10 @@ export function useVehicles(filters?: VehicleFilters) {
                 query = query.ilike("brand", `%${value}%`);
                 break;
               case "minPrice":
-                query = query.gte("price_per_day", value);
+                query = query.gte("priceperday", value);
                 break;
               case "maxPrice":
-                query = query.lte("price_per_day", value);
+                query = query.lte("priceperday", value);
                 break;
               case "location":
                 query = query.contains("locations", [value]);
@@ -54,7 +54,6 @@ export function useVehicles(filters?: VehicleFilters) {
         });
       }
 
-      // Entferne die Sortierung, da sie möglicherweise das Problem verursacht
       const { data, error: supabaseError } = await query;
 
       if (supabaseError) {
@@ -69,7 +68,7 @@ export function useVehicles(filters?: VehicleFilters) {
 
       // Sortiere die Daten clientseitig
       const sortedData = [...data].sort(
-        (a, b) => (a.price_per_day || 0) - (b.price_per_day || 0)
+        (a, b) => (a.priceperday || 0) - (b.priceperday || 0)
       );
 
       setVehicles(sortedData as Vehicle[]);
