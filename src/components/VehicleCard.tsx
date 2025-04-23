@@ -13,7 +13,7 @@ export default function VehicleCard({ vehicle, onRentClick }: VehicleCardProps) 
     <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
       <div className="relative">
         <img
-          src={vehicle.imageUrl || '/placeholder-car.jpg'}
+          src={vehicle.carimg || '/placeholder-car.jpg'}
           alt={`${vehicle.brand} ${vehicle.model}`}
           className="w-full h-48 object-cover"
         />
@@ -38,10 +38,10 @@ export default function VehicleCard({ vehicle, onRentClick }: VehicleCardProps) 
         <div className="flex justify-between items-start mb-2">
           <div>
             <h3 className="font-semibold text-lg">{vehicle.brand} {vehicle.model}</h3>
-            <p className="text-sm text-gray-500">{vehicle.vehicleType}</p>
+            <p className="text-sm text-gray-500">{vehicle.vehicletype}</p>
           </div>
           <div className="text-right">
-            <p className="font-bold text-lg text-blue-600">€{vehicle.pricePerDay}/Tag</p>
+            <p className="font-bold text-lg text-blue-600">€{vehicle.priceperday}/Tag</p>
           </div>
         </div>
         

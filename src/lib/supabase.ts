@@ -18,17 +18,17 @@ export const supabase: SupabaseClient = createClient(
 // Typendefinitionen basierend auf der Datenbankstruktur
 export type Vehicle = {
   id: string;
-  vehicleID: string;
+  vehicleid: string;
   brand: string;
   model: string;
   year: number;
-  vehicleType: string;
+  vehicletype: string;
   colors: string[];
   locations: string[];
-  pricePerDay: number;
+  priceperday: number;
   availability: boolean;
   electricVehicle: boolean;
-  imageUrl: string;
+  carimg: string;
   seats: number;
   luggage: number;
   horsepower: number;
@@ -44,7 +44,7 @@ export type Location = {
   name: string;
   address: string;
   city: string;
-  postalCode: string;
+  postal_code: string;
   country: string;
   created_at: string;
   updated_at: string;
@@ -52,9 +52,9 @@ export type Location = {
 
 export type Review = {
   id: string;
-  vehicleId: string;
-  userId: string;
-  userName: string;
+  vehicleid: string;
+  user_id: string;
+  user_name: string;
   rating: number;
   comment: string;
   created_at: string;
@@ -63,13 +63,13 @@ export type Review = {
 
 export type Booking = {
   id: string;
-  vehicleId: string;
-  userId: string;
-  pickupLocation: string;
-  dropoffLocation: string;
-  pickupDate: string;
-  dropoffDate: string;
-  totalPrice: number;
+  vehicle_id: string;
+  user_id: string;
+  pickup_location: string;
+  dropoff_location: string;
+  pickup_date: string;
+  dropoff_date: string;
+  total_price: number;
   status: "pending" | "confirmed" | "cancelled" | "completed";
   created_at: string;
   updated_at: string;
@@ -77,61 +77,105 @@ export type Booking = {
 
 // Hilfsfunktionen für Datenbankoperationen
 export const getVehicles = async (filters?: Partial<Vehicle>) => {
-  let query = supabase.from("vehicles").select("*");
+  try {
+    let query = supabase.from("vehicles").select("*");
 
-  if (filters) {
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined) {
-        query = query.eq(key, value);
-      }
-    });
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined) {
+          query = query.eq(key, value);
+        }
+      });
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Supabase-Fehler:", error);
+      throw new Error(`Fehler beim Laden der Fahrzeuge: ${error.message}`);
+    }
+
+    if (!data) {
+      console.warn("Keine Daten von Supabase erhalten");
+      return [];
+    }
+
+    return data as Vehicle[];
+  } catch (err) {
+    console.error("Unerwarteter Fehler beim Laden der Fahrzeuge:", err);
+    throw err;
   }
-
-  const { data, error } = await query;
-
-  if (error) {
-    throw new Error(`Fehler beim Laden der Fahrzeuge: ${error.message}`);
-  }
-
-  return data as Vehicle[];
 };
 
 export const getLocations = async () => {
-  const { data, error } = await supabase.from("locations").select("*");
+  try {
+    const { data, error } = await supabase.from("locations").select("*");
 
-  if (error) {
-    throw new Error(`Fehler beim Laden der Standorte: ${error.message}`);
+    if (error) {
+      console.error("Supabase-Fehler beim Laden der Standorte:", error);
+      throw new Error(`Fehler beim Laden der Standorte: ${error.message}`);
+    }
+
+    if (!data) {
+      console.warn("Keine Standortdaten von Supabase erhalten");
+      return [];
+    }
+
+    return data as Location[];
+  } catch (err) {
+    console.error("Unerwarteter Fehler beim Laden der Standorte:", err);
+    throw err;
   }
-
-  return data as Location[];
 };
 
 export const getReviews = async (vehicleId: string) => {
-  const { data, error } = await supabase
-    .from("reviews")
-    .select("*")
-    .eq("vehicleId", vehicleId)
-    .order("created_at", { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from("reviews")
+      .select("*")
+      .eq("vehicle_id", vehicleId)
+      .order("created_at", { ascending: false });
 
-  if (error) {
-    throw new Error(`Fehler beim Laden der Bewertungen: ${error.message}`);
+    if (error) {
+      console.error("Supabase-Fehler beim Laden der Bewertungen:", error);
+      throw new Error(`Fehler beim Laden der Bewertungen: ${error.message}`);
+    }
+
+    if (!data) {
+      console.warn("Keine Bewertungsdaten von Supabase erhalten");
+      return [];
+    }
+
+    return data as Review[];
+  } catch (err) {
+    console.error("Unerwarteter Fehler beim Laden der Bewertungen:", err);
+    throw err;
   }
-
-  return data as Review[];
 };
 
 export const createBooking = async (
   booking: Omit<Booking, "id" | "created_at" | "updated_at">
 ) => {
-  const { data, error } = await supabase
-    .from("bookings")
-    .insert([booking])
-    .select()
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from("bookings")
+      .insert([booking])
+      .select()
+      .single();
 
-  if (error) {
-    throw new Error(`Fehler beim Erstellen der Buchung: ${error.message}`);
+    if (error) {
+      console.error("Supabase-Fehler beim Erstellen der Buchung:", error);
+      throw new Error(`Fehler beim Erstellen der Buchung: ${error.message}`);
+    }
+
+    if (!data) {
+      console.warn("Keine Buchungsdaten von Supabase erhalten");
+      throw new Error("Keine Buchungsdaten erhalten");
+    }
+
+    return data as Booking;
+  } catch (err) {
+    console.error("Unerwarteter Fehler beim Erstellen der Buchung:", err);
+    throw err;
   }
-
-  return data as Booking;
 };

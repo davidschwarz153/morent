@@ -11,10 +11,10 @@ interface SearchFilters {
   brand?: string;
   model?: string;
   priceRange?: [number, number];
-  type?: string;
+  vehicle_type?: string;
   year?: number;
   transmission?: string;
-  fuelType?: string;
+  fuel?: string;
   seats?: number;
 }
 

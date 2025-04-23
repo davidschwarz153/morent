@@ -40,7 +40,7 @@ export function useLocations() {
         (loc) => ({
           id: loc.id,
           name: loc.name,
-          fullAddress: `${loc.address}, ${loc.postalCode} ${loc.city}, ${loc.country}`,
+          fullAddress: `${loc.address}, ${loc.postal_code} ${loc.city}, ${loc.country}`,
         })
       );
 

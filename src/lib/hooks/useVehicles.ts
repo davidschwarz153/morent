@@ -3,12 +3,12 @@ import { supabase, Vehicle } from "../supabase";
 
 export interface VehicleFilters {
   brand?: string;
-  vehicleType?: string;
+  vehicle_type?: string;
   minPrice?: number;
   maxPrice?: number;
   location?: string;
   availability?: boolean;
-  electricVehicle?: boolean;
+  electric_vehicle?: boolean;
   transmission?: string;
   seats?: number;
   luggage?: number;
@@ -39,10 +39,10 @@ export function useVehicles(filters?: VehicleFilters) {
                 query = query.ilike("brand", `%${value}%`);
                 break;
               case "minPrice":
-                query = query.gte("pricePerDay", value);
+                query = query.gte("price_per_day", value);
                 break;
               case "maxPrice":
-                query = query.lte("pricePerDay", value);
+                query = query.lte("price_per_day", value);
                 break;
               case "location":
                 query = query.contains("locations", [value]);
@@ -54,9 +54,8 @@ export function useVehicles(filters?: VehicleFilters) {
         });
       }
 
-      const { data, error: supabaseError } = await query.order("pricePerDay", {
-        ascending: true,
-      });
+      // Entferne die Sortierung, da sie möglicherweise das Problem verursacht
+      const { data, error: supabaseError } = await query;
 
       if (supabaseError) {
         throw new Error(
@@ -68,7 +67,12 @@ export function useVehicles(filters?: VehicleFilters) {
         throw new Error("Keine Daten vom Server erhalten");
       }
 
-      setVehicles(data as Vehicle[]);
+      // Sortiere die Daten clientseitig
+      const sortedData = [...data].sort(
+        (a, b) => (a.price_per_day || 0) - (b.price_per_day || 0)
+      );
+
+      setVehicles(sortedData as Vehicle[]);
       setLastFetch(Date.now());
     } catch (err) {
       setError(
