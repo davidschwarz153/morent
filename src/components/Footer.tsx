@@ -42,7 +42,7 @@ export default function Footer() {
         </div>
         
         <div className="flex flex-col md:flex-row justify-between mt-10 pt-6 border-t border-gray-200 text-sm text-gray-600">
-          <p>©2023 MORENT. All rights reserved</p>
+          <p>©2025 MORENT. All rights reserved</p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <a href="#" className="hover:text-blue-500">Privacy & Policy</a>
             <a href="#" className="hover:text-blue-500">Terms & Condition</a>
