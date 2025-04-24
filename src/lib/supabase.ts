@@ -69,6 +69,16 @@ export type Booking = {
   updated_at: string;
 };
 
+// Добавляем тип Profile
+export type Profile = {
+  id: string; // UUID из auth.users
+  full_name: string | null;
+  last_name: string | null;
+  phone_number: string | null;
+  avatar_url: string | null;
+  updated_at: string | null;
+};
+
 // Hilfsfunktionen für Datenbankoperationen
 export const getVehicles = async (filters?: Partial<Vehicle>) => {
   try {
@@ -340,6 +350,86 @@ export const getVehicleLocations = async (vehicleId: string) => {
     return data as Location[];
   } catch (err) {
     console.error("Unerwarteter Fehler beim Laden der Standorte:", err);
+    throw err;
+  }
+};
+
+// Функция для получения профиля пользователя
+export const getUserProfile = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId) // Используем id, так как предполагается, что он совпадает с auth.users.id
+      .single();
+
+    if (error && error.code !== "PGRST116") {
+      // Игнорируем ошибку "не найдено строк"
+      console.error("Supabase-Fehler beim Laden des Profils:", error);
+      throw new Error(`Fehler beim Laden des Profils: ${error.message}`);
+    }
+
+    return data as Profile | null;
+  } catch (err) {
+    console.error("Unerwarteter Fehler beim Laden des Profils:", err);
+    throw err;
+  }
+};
+
+// Функция для обновления профиля пользователя
+export const updateUserProfile = async (
+  userId: string,
+  updates: Partial<Omit<Profile, "id" | "updated_at"> & { updated_at?: string }>
+) => {
+  // Явное указание типа для updates, чтобы исключить id и позволить updated_at
+  try {
+    // Устанавливаем updated_at на текущее время
+    updates.updated_at = new Date().toISOString();
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .update(updates)
+      .eq("id", userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Supabase-Fehler beim Aktualisieren des Profils:", error);
+      throw new Error(
+        `Fehler beim Aktualisieren des Profils: ${error.message}`
+      );
+    }
+    return data as Profile;
+  } catch (err) {
+    console.error("Unerwarteter Fehler beim Aktualisieren des Profils:", err);
+    throw err;
+  }
+};
+
+// Функция для получения бронирований пользователя
+// Добавляем JOIN с vehicles
+export const getUserBookings = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("bookings")
+      .select(
+        `
+        *,
+        vehicles (*)
+      `
+      )
+      .eq("user_id", userId)
+      .order("pickup_date", { ascending: false }); // Сортируем по дате получения (сначала новые)
+
+    if (error) {
+      console.error("Supabase-Fehler beim Laden der Buchungen:", error);
+      throw new Error(`Fehler beim Laden der Buchungen: ${error.message}`);
+    }
+
+    // Приводим тип данных, включая вложенные данные автомобиля
+    return data as (Booking & { vehicles: Vehicle | null })[] | null;
+  } catch (err) {
+    console.error("Unerwarteter Fehler beim Laden der Buchungen:", err);
     throw err;
   }
 };

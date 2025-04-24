@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 // Hier verwenden wir einen Mock für Standorte, da es Probleme mit useLocations gab
 const MOCK_LOCATIONS = [
@@ -7,7 +7,7 @@ const MOCK_LOCATIONS = [
   "Hamburg",
   "Frankfurt",
   "Köln",
-  "Stuttgart"
+  "Stuttgart",
 ];
 
 interface SearchFilters {
@@ -25,71 +25,77 @@ interface SearchFormProps {
 
 export default function SearchForm({ onSearch }: SearchFormProps) {
   const [filters, setFilters] = useState<SearchFilters>({
-    pickupLocation: '',
-    pickupDate: '',
-    pickupTime: '',
-    dropoffLocation: '',
-    dropoffDate: '',
-    dropoffTime: ''
+    pickupLocation: "",
+    pickupDate: "",
+    pickupTime: "",
+    dropoffLocation: "",
+    dropoffDate: "",
+    dropoffTime: "",
   });
-  
-  const [errors, setErrors] = useState<Partial<Record<keyof SearchFilters, string>>>({});
+
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof SearchFilters, string>>
+  >({});
   const locations = MOCK_LOCATIONS;
   const loading = false;
-  
+
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof SearchFilters, string>> = {};
-    
+
     if (!filters.pickupLocation) {
-      newErrors.pickupLocation = 'Bitte wählen Sie einen Abholort';
+      newErrors.pickupLocation = "Bitte wählen Sie einen Abholort";
     }
-    
+
     if (!filters.pickupDate) {
-      newErrors.pickupDate = 'Bitte wählen Sie ein Abholdatum';
+      newErrors.pickupDate = "Bitte wählen Sie ein Abholdatum";
     }
-    
+
     if (!filters.pickupTime) {
-      newErrors.pickupTime = 'Bitte wählen Sie eine Abholzeit';
+      newErrors.pickupTime = "Bitte wählen Sie eine Abholzeit";
     }
-    
+
     if (!filters.dropoffLocation) {
-      newErrors.dropoffLocation = 'Bitte wählen Sie einen Rückgabeort';
+      newErrors.dropoffLocation = "Bitte wählen Sie einen Rückgabeort";
     }
-    
+
     if (!filters.dropoffDate) {
-      newErrors.dropoffDate = 'Bitte wählen Sie ein Rückgabedatum';
+      newErrors.dropoffDate = "Bitte wählen Sie ein Rückgabedatum";
     }
-    
+
     if (!filters.dropoffTime) {
-      newErrors.dropoffTime = 'Bitte wählen Sie eine Rückgabezeit';
+      newErrors.dropoffTime = "Bitte wählen Sie eine Rückgabezeit";
     }
-    
+
     // Datumvalidierung
-    const pickupDateTime = new Date(`${filters.pickupDate}T${filters.pickupTime}`);
-    const dropoffDateTime = new Date(`${filters.dropoffDate}T${filters.dropoffTime}`);
-    
+    const pickupDateTime = new Date(
+      `${filters.pickupDate}T${filters.pickupTime}`
+    );
+    const dropoffDateTime = new Date(
+      `${filters.dropoffDate}T${filters.dropoffTime}`
+    );
+
     if (pickupDateTime >= dropoffDateTime) {
-      newErrors.dropoffDate = 'Rückgabedatum muss nach Abholdatum liegen';
+      newErrors.dropoffDate = "Rückgabedatum muss nach Abholdatum liegen";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const handleChange = (field: keyof SearchFilters, value: string) => {
-    setFilters(prev => ({ ...prev, [field]: value }));
+    setFilters((prev) => ({ ...prev, [field]: value }));
     // Fehler für dieses Feld zurücksetzen
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
-  
+
   const handleSearch = () => {
     if (validateForm()) {
       onSearch(filters);
     }
   };
-  
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -100,53 +106,57 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Ort
               </label>
-              <select 
+              <select
                 className={`w-full p-2 border rounded-md ${
-                  errors.pickupLocation ? 'border-red-500' : 'border-gray-300'
+                  errors.pickupLocation ? "border-red-500" : "border-gray-300"
                 } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                 value={filters.pickupLocation}
-                onChange={(e) => handleChange('pickupLocation', e.target.value)}
+                onChange={(e) => handleChange("pickupLocation", e.target.value)}
                 disabled={loading}
               >
                 <option value="">Bitte wählen</option>
-                {locations.map(location => (
-                  <option key={location} value={location}>{location}</option>
+                {locations.map((location) => (
+                  <option key={location} value={location}>
+                    {location}
+                  </option>
                 ))}
               </select>
               {errors.pickupLocation && (
-                <p className="mt-1 text-sm text-red-500">{errors.pickupLocation}</p>
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.pickupLocation}
+                </p>
               )}
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Datum
               </label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 className={`w-full p-2 border rounded-md ${
-                  errors.pickupDate ? 'border-red-500' : 'border-gray-300'
+                  errors.pickupDate ? "border-red-500" : "border-gray-300"
                 } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                 value={filters.pickupDate}
-                onChange={(e) => handleChange('pickupDate', e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
+                onChange={(e) => handleChange("pickupDate", e.target.value)}
+                min={new Date().toISOString().split("T")[0]}
               />
               {errors.pickupDate && (
                 <p className="mt-1 text-sm text-red-500">{errors.pickupDate}</p>
               )}
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Uhrzeit
               </label>
-              <input 
-                type="time" 
+              <input
+                type="time"
                 className={`w-full p-2 border rounded-md ${
-                  errors.pickupTime ? 'border-red-500' : 'border-gray-300'
+                  errors.pickupTime ? "border-red-500" : "border-gray-300"
                 } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                 value={filters.pickupTime}
-                onChange={(e) => handleChange('pickupTime', e.target.value)}
+                onChange={(e) => handleChange("pickupTime", e.target.value)}
               />
               {errors.pickupTime && (
                 <p className="mt-1 text-sm text-red-500">{errors.pickupTime}</p>
@@ -154,7 +164,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
             </div>
           </div>
         </div>
-        
+
         <div>
           <h3 className="font-semibold text-lg mb-4">Rückgabe</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -162,62 +172,74 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Ort
               </label>
-              <select 
+              <select
                 className={`w-full p-2 border rounded-md ${
-                  errors.dropoffLocation ? 'border-red-500' : 'border-gray-300'
+                  errors.dropoffLocation ? "border-red-500" : "border-gray-300"
                 } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                 value={filters.dropoffLocation}
-                onChange={(e) => handleChange('dropoffLocation', e.target.value)}
+                onChange={(e) =>
+                  handleChange("dropoffLocation", e.target.value)
+                }
                 disabled={loading}
               >
                 <option value="">Bitte wählen</option>
-                {locations.map(location => (
-                  <option key={location} value={location}>{location}</option>
+                {locations.map((location) => (
+                  <option key={location} value={location}>
+                    {location}
+                  </option>
                 ))}
               </select>
               {errors.dropoffLocation && (
-                <p className="mt-1 text-sm text-red-500">{errors.dropoffLocation}</p>
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.dropoffLocation}
+                </p>
               )}
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Datum
               </label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 className={`w-full p-2 border rounded-md ${
-                  errors.dropoffDate ? 'border-red-500' : 'border-gray-300'
+                  errors.dropoffDate ? "border-red-500" : "border-gray-300"
                 } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                 value={filters.dropoffDate}
-                onChange={(e) => handleChange('dropoffDate', e.target.value)}
-                min={filters.pickupDate || new Date().toISOString().split('T')[0]}
+                onChange={(e) => handleChange("dropoffDate", e.target.value)}
+                min={
+                  filters.pickupDate || new Date().toISOString().split("T")[0]
+                }
               />
               {errors.dropoffDate && (
-                <p className="mt-1 text-sm text-red-500">{errors.dropoffDate}</p>
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.dropoffDate}
+                </p>
               )}
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Uhrzeit
               </label>
-              <input 
-                type="time" 
+              <input
+                type="time"
                 className={`w-full p-2 border rounded-md ${
-                  errors.dropoffTime ? 'border-red-500' : 'border-gray-300'
+                  errors.dropoffTime ? "border-red-500" : "border-gray-300"
                 } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                 value={filters.dropoffTime}
-                onChange={(e) => handleChange('dropoffTime', e.target.value)}
+                onChange={(e) => handleChange("dropoffTime", e.target.value)}
               />
               {errors.dropoffTime && (
-                <p className="mt-1 text-sm text-red-500">{errors.dropoffTime}</p>
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.dropoffTime}
+                </p>
               )}
             </div>
           </div>
         </div>
       </div>
-      
+
       <div className="mt-6 text-center">
         <button
           onClick={handleSearch}
@@ -228,4 +250,4 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
       </div>
     </div>
   );
-} 
+}

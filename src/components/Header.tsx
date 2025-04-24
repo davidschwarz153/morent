@@ -1,22 +1,35 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../lib/supabase";
 
 export default function Header() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
-  
+  const { session, loading } = useAuth();
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (searchTerm.trim()) {
       navigate(`/search?query=${encodeURIComponent(searchTerm)}`);
     }
   };
-  
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Error logging out:", error);
+    }
+    navigate("/");
+  };
+
   return (
     <header className="flex items-center justify-between p-4 border-b border-gray-200">
-      <Link to="/" className="text-blue-500 font-bold text-2xl">MORENT</Link>
-      
+      <Link to="/" className="text-blue-500 font-bold text-2xl">
+        MORENT
+      </Link>
+
       <form onSubmit={handleSearch} className="relative w-1/3">
         <input
           type="text"
@@ -40,11 +53,16 @@ export default function Header() {
             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
           />
         </svg>
-        <button type="submit" className="hidden">Suchen</button>
+        <button type="submit" className="hidden">
+          Suchen
+        </button>
       </form>
-      
+
       <div className="flex items-center space-x-4">
-        <Link to="/search" className="text-gray-600 hover:text-blue-600 transition-colors">
+        <Link
+          to="/search"
+          className="text-gray-600 hover:text-blue-600 transition-colors"
+        >
           Erweiterte Suche
         </Link>
         <button className="text-gray-600 relative">
@@ -63,23 +81,73 @@ export default function Header() {
             />
           </svg>
         </button>
-        <button className="text-gray-600">
-          <svg
-            width="24"
-            height="24"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-            />
-          </svg>
-        </button>
+
+        {!loading && (
+          <div className="flex items-center space-x-2">
+            {" "}
+            {session ? (
+              <>
+                <Link
+                  to="/profile"
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                  title="My Account"
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                  title="Войти"
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                </Link>
+
+                <Link
+                  to="/login"
+                  className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  Login
+                </Link>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </header>
   );
-} 
+}

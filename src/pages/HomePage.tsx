@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import Header from '../components/Header';
-import HeroBanner from '../components/HeroBanner';
-import SearchForm from '../components/SearchForm';
-import VehicleCard from '../components/VehicleCard';
-import Footer from '../components/Footer';
-import { useVehicles } from '../lib/hooks/useVehicles';
+import { useState } from "react";
+import Header from "../components/Header";
+import HeroBanner from "../components/HeroBanner";
+import SearchForm from "../components/SearchForm";
+import VehicleCard from "../components/VehicleCard";
+import Footer from "../components/Footer";
+import { useVehicles, VehicleFilters } from "../lib/hooks/useVehicles";
 
 interface HomeSearchFilters {
   brand?: string;
@@ -44,29 +44,42 @@ export default function HomePage() {
   const [filters, setFilters] = useState<HomeSearchFilters>({});
   const { vehicles, loading, error } = useVehicles(filters);
   const [visibleCount, setVisibleCount] = useState(8);
-  
+
   // Konvertiert das Formular-Suchobjekt in unser internes Filterobjekt
   const handleSearch = (searchFilters: FormSearchFilters) => {
-    // Hier könnten wir die Formularfilter in interne Filter konvertieren
-    setFilters({});
-    setVisibleCount(8);
+    console.log("Search triggered with filters:", searchFilters);
+
+    // Erstelle das Filterobjekt für useVehicles
+    const vehicleFilters: VehicleFilters = {};
+
+    // Verwende pickupLocation als Standortfilter
+    if (searchFilters.pickupLocation) {
+      vehicleFilters.location = searchFilters.pickupLocation;
+    }
+
+    // TODO: Hier könnten weitere Filter aus searchFilters konvertiert werden,
+    // z.B. Datums-/Zeitfilter zur Verfügbarkeitsprüfung (erfordert Anpassung in useVehicles)
+
+    console.log("Applying vehicle filters:", vehicleFilters);
+    setFilters(vehicleFilters);
+    setVisibleCount(8); // Setze die Anzahl sichtbarer Autos zurück
   };
-  
+
   const loadMore = () => {
-    setVisibleCount(prev => prev + 8);
+    setVisibleCount((prev) => prev + 8);
   };
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <main className="container mx-auto py-6 px-4">
         <HeroBanner />
-        
+
         <div className="my-6">
           <SearchForm onSearch={handleSearch} />
         </div>
-        
+
         {loading ? (
           <LoadingSpinner />
         ) : error ? (
@@ -79,13 +92,10 @@ export default function HomePage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {vehicles.slice(0, visibleCount).map((vehicle) => (
-                <VehicleCard
-                  key={vehicle.id}
-                  vehicle={vehicle}
-                />
+                <VehicleCard key={vehicle.id} vehicle={vehicle} />
               ))}
             </div>
-            
+
             {visibleCount < vehicles.length && (
               <div className="text-center mt-8">
                 <button
@@ -99,8 +109,8 @@ export default function HomePage() {
           </>
         )}
       </main>
-      
+
       <Footer />
     </div>
   );
-} 
+}
