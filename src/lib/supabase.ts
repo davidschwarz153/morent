@@ -1,19 +1,14 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from '@supabase/supabase-js';
 
 // Diese Umgebungsvariablen müssen in einer .env-Datei definiert werden
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    "Supabase URL und Anon Key müssen in der .env-Datei definiert werden"
-  );
+  throw new Error('Missing Supabase environment variables');
 }
 
-export const supabase: SupabaseClient = createClient(
-  supabaseUrl,
-  supabaseAnonKey
-);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Typendefinitionen basierend auf der Datenbankstruktur
 export type Vehicle = {
