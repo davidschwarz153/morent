@@ -8,14 +8,20 @@ import { MdSwapVert } from "react-icons/md";
 interface SearchFilters {
   type?: string[];
   capacity?: number[];
-  maxPrice?: number;
+  maxPrice: number;
+  brand?: string[];
+  minPrice: number;
+  sortBy?: "price_asc" | "price_desc" | "model_asc" | "model_desc";
 }
 
 export default function SearchPage() {
   const [filters, setFilters] = useState<SearchFilters>({
     type: [],
     capacity: [],
-    maxPrice: 100,
+    maxPrice: 1000,
+    brand: [],
+    minPrice: 0,
+    sortBy: "price_asc",
   });
   const [pickupLocation, setPickupLocation] = useState("");
   const [dropoffLocation, setDropoffLocation] = useState("");
@@ -28,41 +34,84 @@ export default function SearchPage() {
   const { vehicles, loading, error } = useVehicles({
     vehicletype: filters.type?.length ? filters.type[0] : undefined,
     maxPrice: filters.maxPrice,
+    minPrice: filters.minPrice,
+    brand: filters.brand?.length ? filters.brand[0] : undefined,
   });
 
   // Filter Fahrzeuge basierend auf den ausgewählten Filtern
-  const filteredVehicles = vehicles.filter((vehicle) => {
-    // Filterung nach Fahrzeugtyp
-    if (filters.type && filters.type.length > 0) {
-      if (!filters.type.includes(vehicle.vehicletype?.toLowerCase())) {
+  const filteredVehicles = vehicles
+    .filter((vehicle) => {
+      // Filterung nach Fahrzeugtyp
+      if (filters.type && filters.type.length > 0) {
+        const vehicleType = vehicle.vehicletype?.toLowerCase();
+        if (
+          !vehicleType ||
+          !filters.type.some((type) => type.toLowerCase() === vehicleType)
+        ) {
+          return false;
+        }
+      }
+
+      // Filterung nach Marke
+      if (filters.brand && filters.brand.length > 0) {
+        const vehicleBrand = vehicle.brand?.toLowerCase();
+        if (
+          !vehicleBrand ||
+          !filters.brand.some((brand) => brand.toLowerCase() === vehicleBrand)
+        ) {
+          return false;
+        }
+      }
+
+      // Filterung nach Kapazität
+      if (filters.capacity && filters.capacity.length > 0) {
+        const seats = vehicle.seats || 0;
+        let passesCapacityFilter = false;
+
+        for (const capFilter of filters.capacity) {
+          if (capFilter === 8 && seats >= 8) {
+            passesCapacityFilter = true;
+            break;
+          }
+          if (capFilter === 6 && seats > 4 && seats <= 6) {
+            passesCapacityFilter = true;
+            break;
+          }
+          if (capFilter === 4 && seats > 2 && seats <= 4) {
+            passesCapacityFilter = true;
+            break;
+          }
+          if (capFilter === 2 && seats <= 2) {
+            passesCapacityFilter = true;
+            break;
+          }
+        }
+
+        if (!passesCapacityFilter) return false;
+      }
+
+      // Filterung nach Preis
+      const vehiclePrice = vehicle.priceperday || 0;
+      if (vehiclePrice < filters.minPrice || vehiclePrice > filters.maxPrice) {
         return false;
       }
-    }
 
-    // Filterung nach Kapazität
-    if (filters.capacity && filters.capacity.length > 0) {
-      const capacity = vehicle.seats || 0;
-      let passesCapacityFilter = false;
-
-      for (const capFilter of filters.capacity) {
-        if (capFilter === 2 && capacity === 2) passesCapacityFilter = true;
-        if (capFilter === 4 && capacity === 4) passesCapacityFilter = true;
-        if (capFilter === 6 && capacity === 6) passesCapacityFilter = true;
-        if (capFilter === 8 && capacity >= 8) passesCapacityFilter = true;
+      return true;
+    })
+    .sort((a, b) => {
+      switch (filters.sortBy) {
+        case "price_asc":
+          return (a.priceperday || 0) - (b.priceperday || 0);
+        case "price_desc":
+          return (b.priceperday || 0) - (a.priceperday || 0);
+        case "model_asc":
+          return (a.model || "").localeCompare(b.model || "");
+        case "model_desc":
+          return (b.model || "").localeCompare(a.model || "");
+        default:
+          return 0;
       }
-
-      if (!passesCapacityFilter) return false;
-    }
-
-    // Filterung nach Preis
-    if (filters.maxPrice) {
-      if ((vehicle.priceperday || 0) > filters.maxPrice) {
-        return false;
-      }
-    }
-
-    return true;
-  });
+    });
 
   // Aktualisiert den Filter
   const toggleTypeFilter = (type: string) => {
@@ -72,6 +121,18 @@ export default function SearchPage() {
         return { ...prev, type: types.filter((t) => t !== type) };
       } else {
         return { ...prev, type: [...types, type] };
+      }
+    });
+  };
+
+  // Aktualisiert den Markenfilter
+  const toggleBrandFilter = (brand: string) => {
+    setFilters((prev) => {
+      const brands = prev.brand || [];
+      if (brands.includes(brand)) {
+        return { ...prev, brand: brands.filter((b) => b !== brand) };
+      } else {
+        return { ...prev, brand: [...brands, brand] };
       }
     });
   };
@@ -89,8 +150,17 @@ export default function SearchPage() {
   };
 
   // Aktualisiert den Preisfilter
-  const handlePriceChange = (value: number) => {
-    setFilters((prev) => ({ ...prev, maxPrice: value }));
+  const handlePriceChange = (min: number, max: number) => {
+    setFilters((prev) => ({
+      ...prev,
+      minPrice: min,
+      maxPrice: max,
+    }));
+  };
+
+  // Aktualisiert die Sortierung
+  const handleSortChange = (sortBy: SearchFilters["sortBy"]) => {
+    setFilters((prev) => ({ ...prev, sortBy }));
   };
 
   // Tauscht Abholung und Rückgabe
@@ -111,6 +181,66 @@ export default function SearchPage() {
   // Lädt mehr Fahrzeuge
   const loadMore = () => {
     setVisibleCount((prev) => prev + 8);
+  };
+
+  // Получаем уникальные типы автомобилей
+  const getUniqueTypes = () => {
+    const types = new Set<string>();
+    vehicles.forEach((vehicle) => {
+      if (vehicle.vehicletype) {
+        types.add(vehicle.vehicletype.toLowerCase());
+      }
+    });
+    return Array.from(types);
+  };
+
+  // Получаем уникальные значения вместимости
+  const getUniqueCapacities = () => {
+    const capacities = new Set<number>();
+    vehicles.forEach((vehicle) => {
+      const seats = vehicle.seats || 0;
+      if (seats <= 2) capacities.add(2);
+      else if (seats <= 4) capacities.add(4);
+      else if (seats <= 6) capacities.add(6);
+      else capacities.add(8);
+    });
+    return Array.from(capacities).sort((a, b) => a - b);
+  };
+
+  // Получаем количество автомобилей каждого типа
+  const getTypeCount = (type: string) => {
+    return vehicles.filter(
+      (vehicle) => vehicle.vehicletype?.toLowerCase() === type.toLowerCase()
+    ).length;
+  };
+
+  // Получаем количество автомобилей по вместимости
+  const getCapacityCount = (capacity: number) => {
+    return vehicles.filter((vehicle) => {
+      const seats = vehicle.seats || 0;
+      if (capacity === 8) return seats >= 8;
+      if (capacity === 6) return seats > 4 && seats <= 6;
+      if (capacity === 4) return seats > 2 && seats <= 4;
+      return seats <= 2;
+    }).length;
+  };
+
+  // Получаем уникальные марки автомобилей
+  const getUniqueBrands = () => {
+    const brands = new Set<string>();
+    vehicles.forEach((vehicle) => {
+      if (vehicle.brand) {
+        brands.add(vehicle.brand.toLowerCase());
+      }
+    });
+    return Array.from(brands).sort((a, b) => a.localeCompare(b));
+  };
+
+  // Получаем количество автомобилей каждой марки
+  const getBrandCount = (brand: string) => {
+    return vehicles.filter(
+      (vehicle) => vehicle.brand?.toLowerCase() === brand.toLowerCase()
+    ).length;
   };
 
   return (
@@ -219,81 +349,120 @@ export default function SearchPage() {
             <div className="bg-white rounded-lg p-4 shadow-sm">
               <div className="mb-6">
                 <h3 className="uppercase text-xs font-semibold text-gray-500 tracking-wider mb-3">
+                  SORT BY
+                </h3>
+                <select
+                  className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                  value={filters.sortBy}
+                  onChange={(e) =>
+                    handleSortChange(e.target.value as SearchFilters["sortBy"])
+                  }
+                >
+                  <option value="price_asc">Price: Low to High</option>
+                  <option value="price_desc">Price: High to Low</option>
+                  <option value="model_asc">Model: A to Z</option>
+                  <option value="model_desc">Model: Z to A</option>
+                </select>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="uppercase text-xs font-semibold text-gray-500 tracking-wider mb-3">
+                  BRAND
+                </h3>
+                <div className="space-y-2 max-h-60 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-gray-100 hover:scrollbar-thumb-blue-300">
+                  {getUniqueBrands().map((brand) => (
+                    <div key={brand} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`brand-${brand}`}
+                        className="h-4 w-4 text-blue-600"
+                        checked={filters.brand?.includes(brand)}
+                        onChange={() => toggleBrandFilter(brand)}
+                      />
+                      <label
+                        htmlFor={`brand-${brand}`}
+                        className="ml-2 text-sm"
+                      >
+                        {brand.charAt(0).toUpperCase() + brand.slice(1)} (
+                        {getBrandCount(brand)})
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="uppercase text-xs font-semibold text-gray-500 tracking-wider mb-3">
+                  PRICE RANGE
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm text-gray-500">Min:</span>
+                      <span className="text-sm text-gray-800">
+                        ${filters.minPrice}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1000"
+                      step="10"
+                      value={filters.minPrice}
+                      onChange={(e) =>
+                        handlePriceChange(
+                          Number(e.target.value),
+                          filters.maxPrice
+                        )
+                      }
+                      className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm text-gray-500">Max:</span>
+                      <span className="text-sm text-gray-800">
+                        ${filters.maxPrice}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={filters.minPrice}
+                      max="1000"
+                      step="10"
+                      value={filters.maxPrice}
+                      onChange={(e) =>
+                        handlePriceChange(
+                          filters.minPrice,
+                          Number(e.target.value)
+                        )
+                      }
+                      className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="uppercase text-xs font-semibold text-gray-500 tracking-wider mb-3">
                   TYPE
                 </h3>
                 <div className="space-y-2">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="type-sport"
-                      className="h-4 w-4 text-blue-600"
-                      checked={filters.type?.includes("sport")}
-                      onChange={() => toggleTypeFilter("sport")}
-                    />
-                    <label htmlFor="type-sport" className="ml-2 text-sm">
-                      Sport (10)
-                    </label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="type-suv"
-                      className="h-4 w-4 text-blue-600"
-                      checked={filters.type?.includes("suv")}
-                      onChange={() => toggleTypeFilter("suv")}
-                    />
-                    <label htmlFor="type-suv" className="ml-2 text-sm">
-                      SUV (12)
-                    </label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="type-mpv"
-                      className="h-4 w-4 text-blue-600"
-                      checked={filters.type?.includes("mpv")}
-                      onChange={() => toggleTypeFilter("mpv")}
-                    />
-                    <label htmlFor="type-mpv" className="ml-2 text-sm">
-                      MPV (16)
-                    </label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="type-sedan"
-                      className="h-4 w-4 text-blue-600"
-                      checked={filters.type?.includes("sedan")}
-                      onChange={() => toggleTypeFilter("sedan")}
-                    />
-                    <label htmlFor="type-sedan" className="ml-2 text-sm">
-                      Sedan (20)
-                    </label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="type-coupe"
-                      className="h-4 w-4 text-blue-600"
-                      checked={filters.type?.includes("coupe")}
-                      onChange={() => toggleTypeFilter("coupe")}
-                    />
-                    <label htmlFor="type-coupe" className="ml-2 text-sm">
-                      Coupe (14)
-                    </label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="type-hatchback"
-                      className="h-4 w-4 text-blue-600"
-                      checked={filters.type?.includes("hatchback")}
-                      onChange={() => toggleTypeFilter("hatchback")}
-                    />
-                    <label htmlFor="type-hatchback" className="ml-2 text-sm">
-                      Hatchback (14)
-                    </label>
-                  </div>
+                  {getUniqueTypes().map((type) => (
+                    <div key={type} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`type-${type}`}
+                        className="h-4 w-4 text-blue-600"
+                        checked={filters.type?.includes(type)}
+                        onChange={() => toggleTypeFilter(type)}
+                      />
+                      <label htmlFor={`type-${type}`} className="ml-2 text-sm">
+                        {type.charAt(0).toUpperCase() + type.slice(1)} (
+                        {getTypeCount(type)})
+                      </label>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -302,77 +471,24 @@ export default function SearchPage() {
                   CAPACITY
                 </h3>
                 <div className="space-y-2">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="capacity-2"
-                      className="h-4 w-4 text-blue-600"
-                      checked={filters.capacity?.includes(2)}
-                      onChange={() => toggleCapacityFilter(2)}
-                    />
-                    <label htmlFor="capacity-2" className="ml-2 text-sm">
-                      2 Person (10)
-                    </label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="capacity-4"
-                      className="h-4 w-4 text-blue-600"
-                      checked={filters.capacity?.includes(4)}
-                      onChange={() => toggleCapacityFilter(4)}
-                    />
-                    <label htmlFor="capacity-4" className="ml-2 text-sm">
-                      4 Person (14)
-                    </label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="capacity-6"
-                      className="h-4 w-4 text-blue-600"
-                      checked={filters.capacity?.includes(6)}
-                      onChange={() => toggleCapacityFilter(6)}
-                    />
-                    <label htmlFor="capacity-6" className="ml-2 text-sm">
-                      6 Person (12)
-                    </label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="capacity-8"
-                      className="h-4 w-4 text-blue-600"
-                      checked={filters.capacity?.includes(8)}
-                      onChange={() => toggleCapacityFilter(8)}
-                    />
-                    <label htmlFor="capacity-8" className="ml-2 text-sm">
-                      8 or More (16)
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <h3 className="uppercase text-xs font-semibold text-gray-500 tracking-wider mb-3">
-                  PRICE
-                </h3>
-                <div className="px-1">
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    step="1"
-                    value={filters.maxPrice}
-                    onChange={(e) => handlePriceChange(Number(e.target.value))}
-                    className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <div className="flex justify-between mt-2">
-                    <span className="text-sm text-gray-500">Min $0</span>
-                    <span className="text-sm text-gray-800">
-                      Max ${filters.maxPrice}.00
-                    </span>
-                  </div>
+                  {getUniqueCapacities().map((capacity) => (
+                    <div key={capacity} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`capacity-${capacity}`}
+                        className="h-4 w-4 text-blue-600"
+                        checked={filters.capacity?.includes(capacity)}
+                        onChange={() => toggleCapacityFilter(capacity)}
+                      />
+                      <label
+                        htmlFor={`capacity-${capacity}`}
+                        className="ml-2 text-sm"
+                      >
+                        {capacity === 8 ? "8 or More" : `${capacity} Person`} (
+                        {getCapacityCount(capacity)})
+                      </label>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
