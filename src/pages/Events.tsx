@@ -50,6 +50,7 @@ export default function Events() {
     }
   ];
 
+  // Filter events based on category
   const filteredEvents = activeFilter === "all" 
     ? events 
     : events.filter(event => event.category === activeFilter);
@@ -59,12 +60,8 @@ export default function Events() {
       <Header />
       
       <main className="container mx-auto py-12 px-4">
-        <h1 className="text-3xl font-bold text-center mb-4">Veranstaltungen</h1>
-        <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-          Entdecken Sie unsere kommenden Veranstaltungen, Workshops und Community-Treffen.
-          Bleiben Sie auf dem Laufenden und treffen Sie andere Morent-Nutzer.
-        </p>
-
+        <h1 className="text-3xl font-bold text-center mb-12">Veranstaltungen</h1>
+        
         <div className="flex justify-center mb-8">
           <div className="inline-flex rounded-lg border border-gray-200 p-1">
             <button
