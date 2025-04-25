@@ -4,11 +4,25 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Missing Supabase environment variables");
+if (!supabaseUrl) {
+  throw new Error(
+    "VITE_SUPABASE_URL ist nicht definiert. Bitte überprüfen Sie Ihre Umgebungsvariablen."
+  );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+if (!supabaseAnonKey) {
+  throw new Error(
+    "VITE_SUPABASE_ANON_KEY ist nicht definiert. Bitte überprüfen Sie Ihre Umgebungsvariablen."
+  );
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+  },
+});
 
 // Typendefinitionen basierend auf der Datenbankstruktur
 export type Vehicle = {

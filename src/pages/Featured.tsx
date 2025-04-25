@@ -3,24 +3,37 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import VehicleCard from "../components/VehicleCard";
 import { useVehicles } from "../lib/hooks/useVehicles";
+import { Vehicle } from "../lib/supabase";
 import { FaStar, FaTag, FaClock } from "react-icons/fa";
 
 export default function Featured() {
   const { vehicles, loading, error } = useVehicles();
-  const [activeTab, setActiveTab] = useState("featured");
+  const [activeTab, setActiveTab] = useState<"featured" | "offers">("featured");
 
-  // Filter featured vehicles (example criteria)
-  const featuredVehicles = vehicles.filter(vehicle => 
-    // Prüfen, ob die Eigenschaften existieren, bevor darauf zugegriffen wird
-    (vehicle as any).featured === true || 
-    ((vehicle as any).rating !== undefined && (vehicle as any).rating >= 4.5)
+  // Sichere Typprüfung für featured vehicles
+  const featuredVehicles = vehicles.filter((vehicle: Vehicle) => {
+    if (!vehicle) return false;
+    return vehicle.featured || (typeof vehicle.rating === 'number' && vehicle.rating >= 4.5);
+  });
+
+  // Sichere Typprüfung für special offers
+  const specialOffers = vehicles.filter((vehicle: Vehicle) => {
+    if (!vehicle) return false;
+    return typeof vehicle.discount === 'number' && vehicle.discount > 0;
+  });
+
+  // Keine Fahrzeuge gefunden Komponente
+  const NoVehiclesFound = () => (
+    <div className="text-center py-10">
+      <p className="text-gray-500">
+        {activeTab === "featured" 
+          ? "Keine hervorgehobenen Fahrzeuge gefunden." 
+          : "Keine Sonderangebote verfügbar."}
+      </p>
+    </div>
   );
 
-  // Filter special offers
-  const specialOffers = vehicles.filter(vehicle => 
-    // Prüfen, ob die Eigenschaft existiert, bevor darauf zugegriffen wird
-    (vehicle as any).discount !== undefined && (vehicle as any).discount > 0
-  );
+  const displayVehicles = activeTab === "featured" ? featuredVehicles : specialOffers;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -65,14 +78,16 @@ export default function Featured() {
           <div className="text-center py-10">
             <p className="text-red-500">{error.message}</p>
           </div>
+        ) : displayVehicles.length === 0 ? (
+          <NoVehiclesFound />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {(activeTab === "featured" ? featuredVehicles : specialOffers).map((vehicle) => (
+            {displayVehicles.map((vehicle: Vehicle) => (
               <div key={vehicle.id} className="relative">
                 <VehicleCard vehicle={vehicle} />
-                {(vehicle as any).discount > 0 && (
+                {typeof vehicle.discount === 'number' && vehicle.discount > 0 && (
                   <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                    -{(vehicle as any).discount}%
+                    -{vehicle.discount}%
                   </div>
                 )}
               </div>
