@@ -11,12 +11,15 @@ export default function Featured() {
 
   // Filter featured vehicles (example criteria)
   const featuredVehicles = vehicles.filter(vehicle => 
-    vehicle.featured || vehicle.rating >= 4.5
+    // Prüfen, ob die Eigenschaften existieren, bevor darauf zugegriffen wird
+    (vehicle as any).featured === true || 
+    ((vehicle as any).rating !== undefined && (vehicle as any).rating >= 4.5)
   );
 
   // Filter special offers
   const specialOffers = vehicles.filter(vehicle => 
-    vehicle.discount > 0
+    // Prüfen, ob die Eigenschaft existiert, bevor darauf zugegriffen wird
+    (vehicle as any).discount !== undefined && (vehicle as any).discount > 0
   );
 
   return (
@@ -67,9 +70,9 @@ export default function Featured() {
             {(activeTab === "featured" ? featuredVehicles : specialOffers).map((vehicle) => (
               <div key={vehicle.id} className="relative">
                 <VehicleCard vehicle={vehicle} />
-                {vehicle.discount > 0 && (
+                {(vehicle as any).discount > 0 && (
                   <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                    -{vehicle.discount}%
+                    -{(vehicle as any).discount}%
                   </div>
                 )}
               </div>

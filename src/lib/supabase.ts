@@ -1,11 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 // Diese Umgebungsvariablen müssen in einer .env-Datei definiert werden
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  throw new Error("Missing Supabase environment variables");
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -32,6 +32,9 @@ export type Vehicle = {
   fuel: string;
   geartype: string;
   created_at: string;
+  featured?: boolean;
+  rating?: number;
+  discount?: number;
 };
 
 export type Location = {
