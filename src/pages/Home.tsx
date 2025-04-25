@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function Home() {
   const [data, setData] = useState<{ message: string }>({ message: 'Willkommen bei Morent!' })
@@ -26,7 +26,7 @@ export default function Home() {
       }
     }
 
-    // fetchData() - Auskommentiert, um unnötige Aufrufe zu vermeiden
+    fetchData(); // Rufe die Funktion auf, um die Daten zu laden
   }, [])
 
   return (

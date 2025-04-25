@@ -35,6 +35,11 @@ export type Vehicle = {
 };
 
 export type Location = {
+  country: any;
+  city: any;
+  postal_code: any;
+  address: any;
+  name: any;
   id: string;
   locations: string[];
   created_at: string;
