@@ -93,6 +93,7 @@ export type Profile = {
   last_name: string | null;
   phone_number: string | null;
   avatar_url: string | null;
+  email: string | null;
   updated_at: string | null;
 };
 
@@ -398,7 +399,6 @@ export const updateUserProfile = async (
   userId: string,
   updates: Partial<Omit<Profile, "id" | "updated_at"> & { updated_at?: string }>
 ) => {
-  // Явное указание типа для updates, чтобы исключить id и позволить updated_at
   try {
     // Устанавливаем updated_at на текущее время
     updates.updated_at = new Date().toISOString();

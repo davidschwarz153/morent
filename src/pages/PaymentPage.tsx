@@ -280,11 +280,11 @@ export default function PaymentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Header />
         <div className="container mx-auto py-12 px-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="text-center mt-4 text-gray-500">
+          <p className="text-center mt-4 text-gray-500 dark:text-gray-400">
             Fahrzeugdaten werden geladen...
           </p>
         </div>
@@ -295,11 +295,14 @@ export default function PaymentPage() {
 
   if (!vehicle) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Header />
         <div className="container mx-auto py-12 px-4 text-center">
           <p className="text-red-500">Fahrzeug nicht gefunden</p>
-          <Link to="/" className="text-blue-500 mt-4 inline-block">
+          <Link
+            to="/"
+            className="text-blue-500 dark:text-blue-400 mt-4 inline-block"
+          >
             Zurück zur Startseite
           </Link>
         </div>
@@ -309,31 +312,33 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
 
       <main className="container mx-auto py-6 px-4">
         <div className="mb-6">
           <Link
             to={`/cars/${id}`}
-            className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+            className="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
           >
             <MdArrowBack className="mr-1" /> Zurück
           </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Linke Spalte - Formular */}
+          {/* Левая колонка - форма */}
           <div className="md:col-span-2">
             {/* Billing Info */}
             <div
-              className={`bg-white rounded-lg p-6 shadow-sm mb-6 ${
+              className={`bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm mb-6 ${
                 currentStep !== "billing" ? "opacity-60" : ""
               }`}
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center">
-                  <h2 className="text-xl font-bold">Billing Info</h2>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Billing Info
+                  </h2>
                   {getStepNumber(currentStep) > 1 && (
                     <IoCheckmarkCircle
                       className="text-green-500 ml-2"
@@ -341,11 +346,11 @@ export default function PaymentPage() {
                     />
                   )}
                 </div>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   Step {getStepNumber("billing")} of 4
                 </span>
               </div>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                 Bitte geben Sie Ihre Rechnungsdaten ein
               </p>
 
@@ -355,7 +360,7 @@ export default function PaymentPage() {
                     <div>
                       <label
                         htmlFor="name"
-                        className="block text-sm font-medium text-gray-700 mb-1"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                       >
                         Name
                       </label>
@@ -364,7 +369,7 @@ export default function PaymentPage() {
                         id="name"
                         name="name"
                         placeholder="Ihr Name"
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                         value={billingInfo.name}
                         onChange={handleBillingChange}
                         required
@@ -373,7 +378,7 @@ export default function PaymentPage() {
                     <div>
                       <label
                         htmlFor="phoneNumber"
-                        className="block text-sm font-medium text-gray-700 mb-1"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                       >
                         Telefonnummer
                       </label>
@@ -382,7 +387,7 @@ export default function PaymentPage() {
                         id="phoneNumber"
                         name="phoneNumber"
                         placeholder="Telefonnummer"
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                         value={billingInfo.phoneNumber}
                         onChange={handleBillingChange}
                         required
@@ -394,7 +399,7 @@ export default function PaymentPage() {
                     <div>
                       <label
                         htmlFor="address"
-                        className="block text-sm font-medium text-gray-700 mb-1"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                       >
                         Adresse
                       </label>
@@ -403,7 +408,7 @@ export default function PaymentPage() {
                         id="address"
                         name="address"
                         placeholder="Adresse"
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                         value={billingInfo.address}
                         onChange={handleBillingChange}
                         required
@@ -412,7 +417,7 @@ export default function PaymentPage() {
                     <div>
                       <label
                         htmlFor="town"
-                        className="block text-sm font-medium text-gray-700 mb-1"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                       >
                         Stadt / Ort
                       </label>
@@ -421,7 +426,7 @@ export default function PaymentPage() {
                         id="town"
                         name="town"
                         placeholder="Stadt oder Ort"
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                         value={billingInfo.town}
                         onChange={handleBillingChange}
                         required
@@ -432,7 +437,7 @@ export default function PaymentPage() {
                   <div className="flex justify-end">
                     <button
                       onClick={nextStep}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center"
+                      className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors inline-flex items-center"
                     >
                       Weiter <MdKeyboardArrowRight className="ml-1" />
                     </button>
@@ -443,13 +448,15 @@ export default function PaymentPage() {
 
             {/* Rental Info */}
             <div
-              className={`bg-white rounded-lg p-6 shadow-sm mb-6 ${
+              className={`bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm mb-6 ${
                 currentStep !== "rental" ? "opacity-60" : ""
               }`}
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center">
-                  <h2 className="text-xl font-bold">Rental Info</h2>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Rental Info
+                  </h2>
                   {getStepNumber(currentStep) > 2 && (
                     <IoCheckmarkCircle
                       className="text-green-500 ml-2"
@@ -457,30 +464,32 @@ export default function PaymentPage() {
                     />
                   )}
                 </div>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   Step {getStepNumber("rental")} of 4
                 </span>
               </div>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                 Bitte wählen Sie Ihre Mietdaten
               </p>
 
               {currentStep === "rental" && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="font-medium mb-3">Pick - Up</h3>
+                    <h3 className="font-medium text-gray-900 dark:text-white mb-3">
+                      Pick - Up
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label
                           htmlFor="pickupLocation"
-                          className="block text-sm font-medium text-gray-700 mb-1"
+                          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                         >
                           Ort
                         </label>
                         <select
                           id="pickupLocation"
                           name="pickupLocation"
-                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                           value={rentalInfo.pickupLocation}
                           onChange={handleRentalChange}
                           required
@@ -494,7 +503,7 @@ export default function PaymentPage() {
                       <div>
                         <label
                           htmlFor="pickupDate"
-                          className="block text-sm font-medium text-gray-700 mb-1"
+                          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                         >
                           Datum
                         </label>
@@ -502,7 +511,7 @@ export default function PaymentPage() {
                           type="date"
                           id="pickupDate"
                           name="pickupDate"
-                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                           value={rentalInfo.pickupDate}
                           onChange={handleRentalChange}
                           min={new Date().toISOString().split("T")[0]}
@@ -513,7 +522,7 @@ export default function PaymentPage() {
                     <div className="mt-3">
                       <label
                         htmlFor="pickupTime"
-                        className="block text-sm font-medium text-gray-700 mb-1"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                       >
                         Zeit
                       </label>
@@ -521,7 +530,7 @@ export default function PaymentPage() {
                         type="time"
                         id="pickupTime"
                         name="pickupTime"
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                         value={rentalInfo.pickupTime}
                         onChange={handleRentalChange}
                         required
@@ -530,19 +539,21 @@ export default function PaymentPage() {
                   </div>
 
                   <div>
-                    <h3 className="font-medium mb-3">Drop - Off</h3>
+                    <h3 className="font-medium text-gray-900 dark:text-white mb-3">
+                      Drop - Off
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label
                           htmlFor="dropoffLocation"
-                          className="block text-sm font-medium text-gray-700 mb-1"
+                          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                         >
                           Ort
                         </label>
                         <select
                           id="dropoffLocation"
                           name="dropoffLocation"
-                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                           value={rentalInfo.dropoffLocation}
                           onChange={handleRentalChange}
                           required
@@ -556,7 +567,7 @@ export default function PaymentPage() {
                       <div>
                         <label
                           htmlFor="dropoffDate"
-                          className="block text-sm font-medium text-gray-700 mb-1"
+                          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                         >
                           Datum
                         </label>
@@ -564,7 +575,7 @@ export default function PaymentPage() {
                           type="date"
                           id="dropoffDate"
                           name="dropoffDate"
-                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                           value={rentalInfo.dropoffDate}
                           onChange={handleRentalChange}
                           min={
@@ -578,7 +589,7 @@ export default function PaymentPage() {
                     <div className="mt-3">
                       <label
                         htmlFor="dropoffTime"
-                        className="block text-sm font-medium text-gray-700 mb-1"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                       >
                         Zeit
                       </label>
@@ -586,7 +597,7 @@ export default function PaymentPage() {
                         type="time"
                         id="dropoffTime"
                         name="dropoffTime"
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                         value={rentalInfo.dropoffTime}
                         onChange={handleRentalChange}
                         required
@@ -597,13 +608,13 @@ export default function PaymentPage() {
                   <div className="flex justify-between">
                     <button
                       onClick={prevStep}
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
+                      className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     >
                       Zurück
                     </button>
                     <button
                       onClick={nextStep}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center"
+                      className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors inline-flex items-center"
                     >
                       Weiter <MdKeyboardArrowRight className="ml-1" />
                     </button>
@@ -614,13 +625,15 @@ export default function PaymentPage() {
 
             {/* Payment Method */}
             <div
-              className={`bg-white rounded-lg p-6 shadow-sm mb-6 ${
+              className={`bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm mb-6 ${
                 currentStep !== "payment" ? "opacity-60" : ""
               }`}
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center">
-                  <h2 className="text-xl font-bold">Payment Method</h2>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Payment Method
+                  </h2>
                   {getStepNumber(currentStep) > 3 && (
                     <IoCheckmarkCircle
                       className="text-green-500 ml-2"
@@ -628,18 +641,18 @@ export default function PaymentPage() {
                     />
                   )}
                 </div>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   Step {getStepNumber("payment")} of 4
                 </span>
               </div>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                 Bitte wählen Sie Ihre Zahlungsmethode
               </p>
 
               {currentStep === "payment" && (
                 <div className="space-y-4">
                   <div className="space-y-3">
-                    <div className="flex items-center p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50">
+                    <div className="flex items-center p-3 border dark:border-gray-600 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
                       <input
                         type="radio"
                         id="credit"
@@ -648,10 +661,10 @@ export default function PaymentPage() {
                         onChange={() => handlePaymentMethodChange("credit")}
                         className="mr-3"
                       />
-                      <FaCreditCard className="mr-2 text-gray-600" />
+                      <FaCreditCard className="mr-2 text-gray-600 dark:text-gray-400" />
                       <label
                         htmlFor="credit"
-                        className="flex-grow cursor-pointer"
+                        className="flex-grow cursor-pointer text-gray-900 dark:text-white"
                       >
                         Credit Card
                       </label>
@@ -669,7 +682,7 @@ export default function PaymentPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50">
+                    <div className="flex items-center p-3 border dark:border-gray-600 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
                       <input
                         type="radio"
                         id="paypal"
@@ -680,7 +693,7 @@ export default function PaymentPage() {
                       />
                       <label
                         htmlFor="paypal"
-                        className="flex-grow cursor-pointer"
+                        className="flex-grow cursor-pointer text-gray-900 dark:text-white"
                       >
                         PayPal
                       </label>
@@ -691,7 +704,7 @@ export default function PaymentPage() {
                       />
                     </div>
 
-                    <div className="flex items-center p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50">
+                    <div className="flex items-center p-3 border dark:border-gray-600 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
                       <input
                         type="radio"
                         id="bitcoin"
@@ -702,7 +715,7 @@ export default function PaymentPage() {
                       />
                       <label
                         htmlFor="bitcoin"
-                        className="flex-grow cursor-pointer"
+                        className="flex-grow cursor-pointer text-gray-900 dark:text-white"
                       >
                         Bitcoin
                       </label>
@@ -717,13 +730,13 @@ export default function PaymentPage() {
                   <div className="flex justify-between">
                     <button
                       onClick={prevStep}
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
+                      className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     >
                       Zurück
                     </button>
                     <button
                       onClick={nextStep}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center"
+                      className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors inline-flex items-center"
                     >
                       Weiter <MdKeyboardArrowRight className="ml-1" />
                     </button>
@@ -734,17 +747,19 @@ export default function PaymentPage() {
 
             {/* Confirmation */}
             <div
-              className={`bg-white rounded-lg p-6 shadow-sm mb-6 ${
+              className={`bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm mb-6 ${
                 currentStep !== "confirmation" ? "opacity-60" : ""
               }`}
             >
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Confirmation</h2>
-                <span className="text-sm text-gray-500">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Confirmation
+                </h2>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   Step {getStepNumber("confirmation")} of 4
                 </span>
               </div>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                 Fast geschafft! Nur noch ein paar Klicks und Ihre Buchung ist
                 abgeschlossen.
               </p>
@@ -763,7 +778,7 @@ export default function PaymentPage() {
                       />
                       <label
                         htmlFor="marketing"
-                        className="text-sm text-gray-700"
+                        className="text-sm text-gray-700 dark:text-gray-300"
                       >
                         Ich stimme dem Erhalt von Marketing und Newsletter
                         E-Mails zu. Kein Spam, versprochen!
@@ -780,20 +795,23 @@ export default function PaymentPage() {
                         className="mr-3"
                         required
                       />
-                      <label htmlFor="terms" className="text-sm text-gray-700">
+                      <label
+                        htmlFor="terms"
+                        className="text-sm text-gray-700 dark:text-gray-300"
+                      >
                         Ich stimme den Nutzungsbedingungen und der
                         Datenschutzerklärung zu
                       </label>
                     </div>
                   </div>
 
-                  <div className="border rounded-lg p-4 bg-blue-50 flex items-start">
-                    <FaLock className="text-blue-500 mr-3 mt-1" />
+                  <div className="border dark:border-gray-600 rounded-lg p-4 bg-blue-50 dark:bg-blue-900 flex items-start">
+                    <FaLock className="text-blue-500 dark:text-blue-400 mr-3 mt-1" />
                     <div>
-                      <p className="text-sm font-medium">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
                         Alle Ihre Daten sind sicher
                       </p>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
                         Wir verwenden modernste Sicherheitsvorkehrungen, um
                         Ihnen das beste Erlebnis zu bieten.
                       </p>
@@ -803,13 +821,13 @@ export default function PaymentPage() {
                   <div className="flex justify-between">
                     <button
                       onClick={prevStep}
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
+                      className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     >
                       Zurück
                     </button>
                     <button
                       onClick={completeRental}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
                       disabled={!agreements.terms}
                     >
                       Jetzt mieten!
@@ -820,11 +838,13 @@ export default function PaymentPage() {
             </div>
           </div>
 
-          {/* Rechte Spalte - Zusammenfassung */}
+          {/* Правая колонка - сводка */}
           <div className="md:col-span-1">
-            <div className="bg-white rounded-lg p-6 shadow-sm sticky top-6">
-              <h2 className="text-xl font-bold mb-4">Rental Summary</h2>
-              <p className="text-sm text-gray-500 mb-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm sticky top-6">
+              <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+                Rental Summary
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                 Preise können sich je nach Mietdauer und Fahrzeug unterscheiden.
               </p>
 
@@ -838,7 +858,7 @@ export default function PaymentPage() {
                   className="w-20 h-16 object-cover rounded"
                 />
                 <div>
-                  <h3 className="font-medium">
+                  <h3 className="font-medium text-gray-900 dark:text-white">
                     {vehicle.brand} {vehicle.model}
                   </h3>
                   <div className="flex items-center">
@@ -847,24 +867,25 @@ export default function PaymentPage() {
                         <FaStar
                           key={i}
                           className={
-                            i < 4 ? "text-yellow-400" : "text-gray-300"
+                            i < 4
+                              ? "text-yellow-400"
+                              : "text-gray-300 dark:text-gray-600"
                           }
                           size={12}
                         />
                       ))}
                     </div>
-                    <span className="text-xs text-gray-500 ml-1">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
                       5 Bewertungen
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="border-t border-b py-4 space-y-2 mb-4">
+              <div className="border-t border-b dark:border-gray-600 py-4 space-y-2 mb-4">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">
                     Preis ({vehicle.priceperday}$ / Tag x
-                    {/* Рассчитываем и показываем дни */}
                     {(() => {
                       if (rentalInfo.pickupDate && rentalInfo.dropoffDate) {
                         const pickup = new Date(rentalInfo.pickupDate);
@@ -874,30 +895,33 @@ export default function PaymentPage() {
                           const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
                           return days > 0 ? days : 1;
                         }
-                        return 1; // Минимум 1 день если даты некорректны
+                        return 1;
                       }
-                      return 1; // Минимум 1 день если даты не выбраны
+                      return 1;
                     })()}{" "}
                     Tag(e))
                   </span>
-                  <span className="font-medium">
+                  <span className="font-medium text-gray-900 dark:text-white">
                     ${priceDetails.basePrice.toFixed(2)}
-                  </span>{" "}
-                  {/* Используем basePrice из state */}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Steuern</span>
-                  <span className="font-medium">
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Steuern
+                  </span>
+                  <span className="font-medium text-gray-900 dark:text-white">
                     ${priceDetails.tax.toFixed(2)}
-                  </span>{" "}
-                  {/* Используем tax из state */}
+                  </span>
                 </div>
               </div>
 
               <div className="flex justify-between font-bold text-lg">
-                <span>Gesamtpreis</span>
-                <span>${priceDetails.total.toFixed(2)}</span>{" "}
-                {/* Используем total из state */}
+                <span className="text-gray-900 dark:text-white">
+                  Gesamtpreis
+                </span>
+                <span className="text-gray-900 dark:text-white">
+                  ${priceDetails.total.toFixed(2)}
+                </span>
               </div>
             </div>
           </div>

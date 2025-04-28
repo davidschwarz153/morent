@@ -70,7 +70,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
 
       <main className="container mx-auto py-6 px-4">
@@ -86,7 +86,9 @@ export default function HomePage() {
           <ErrorMessage message={error.message} />
         ) : vehicles.length === 0 ? (
           <div className="text-center py-10">
-            <p className="text-gray-500">Keine Fahrzeuge gefunden</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              Keine Fahrzeuge gefunden
+            </p>
           </div>
         ) : (
           <>
@@ -100,7 +102,7 @@ export default function HomePage() {
               <div className="text-center mt-8">
                 <button
                   onClick={loadMore}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors dark:bg-blue-500 dark:hover:bg-blue-600"
                 >
                   Mehr anzeigen
                 </button>

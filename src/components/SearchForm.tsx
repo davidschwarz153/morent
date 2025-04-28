@@ -97,19 +97,19 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h3 className="font-semibold text-lg mb-4">Abholung</h3>
+          <h3 className="font-semibold text-lg mb-4 dark:text-white">
+            Abholung
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Ort
               </label>
               <select
-                className={`w-full p-2 border rounded-md ${
-                  errors.pickupLocation ? "border-red-500" : "border-gray-300"
-                } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm dark:bg-gray-700 dark:text-white"
                 value={filters.pickupLocation}
                 onChange={(e) => handleChange("pickupLocation", e.target.value)}
                 disabled={loading}
@@ -129,14 +129,12 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Datum
               </label>
               <input
                 type="date"
-                className={`w-full p-2 border rounded-md ${
-                  errors.pickupDate ? "border-red-500" : "border-gray-300"
-                } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm dark:bg-gray-700 dark:text-white"
                 value={filters.pickupDate}
                 onChange={(e) => handleChange("pickupDate", e.target.value)}
                 min={new Date().toISOString().split("T")[0]}
@@ -147,14 +145,12 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Uhrzeit
               </label>
               <input
                 type="time"
-                className={`w-full p-2 border rounded-md ${
-                  errors.pickupTime ? "border-red-500" : "border-gray-300"
-                } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm dark:bg-gray-700 dark:text-white"
                 value={filters.pickupTime}
                 onChange={(e) => handleChange("pickupTime", e.target.value)}
               />
@@ -166,16 +162,16 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
         </div>
 
         <div>
-          <h3 className="font-semibold text-lg mb-4">Rückgabe</h3>
+          <h3 className="font-semibold text-lg mb-4 dark:text-white">
+            Rückgabe
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Ort
               </label>
               <select
-                className={`w-full p-2 border rounded-md ${
-                  errors.dropoffLocation ? "border-red-500" : "border-gray-300"
-                } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm dark:bg-gray-700 dark:text-white"
                 value={filters.dropoffLocation}
                 onChange={(e) =>
                   handleChange("dropoffLocation", e.target.value)
@@ -197,14 +193,12 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Datum
               </label>
               <input
                 type="date"
-                className={`w-full p-2 border rounded-md ${
-                  errors.dropoffDate ? "border-red-500" : "border-gray-300"
-                } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm dark:bg-gray-700 dark:text-white"
                 value={filters.dropoffDate}
                 onChange={(e) => handleChange("dropoffDate", e.target.value)}
                 min={
@@ -219,14 +213,12 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Uhrzeit
               </label>
               <input
                 type="time"
-                className={`w-full p-2 border rounded-md ${
-                  errors.dropoffTime ? "border-red-500" : "border-gray-300"
-                } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm dark:bg-gray-700 dark:text-white"
                 value={filters.dropoffTime}
                 onChange={(e) => handleChange("dropoffTime", e.target.value)}
               />
@@ -243,7 +235,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
       <div className="mt-6 text-center">
         <button
           onClick={handleSearch}
-          className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium dark:bg-blue-500 dark:hover:bg-blue-600"
         >
           Fahrzeuge suchen
         </button>
