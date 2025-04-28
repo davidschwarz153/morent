@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import VehicleCard from "../components/VehicleCard";
 import { useVehicles } from "../lib/hooks/useVehicles";
 import { MdSwapVert } from "react-icons/md";
+import { Vehicle } from "../lib/supabase";
 
 interface SearchFilters {
   type?: string[];
@@ -14,6 +15,13 @@ interface SearchFilters {
   fuel?: string[];
   sortBy?: "price_asc" | "price_desc" | "model_asc" | "model_desc";
 }
+
+const LoadingSpinner = () => (
+  <div className="text-center py-10">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+    <p className="text-gray-500 mt-4">Fahrzeuge werden geladen...</p>
+  </div>
+);
 
 export default function SearchPage() {
   const [filters, setFilters] = useState<SearchFilters>({
@@ -32,6 +40,9 @@ export default function SearchPage() {
   const [pickupTime, setPickupTime] = useState("");
   const [dropoffTime, setDropoffTime] = useState("");
   const [visibleCount, setVisibleCount] = useState(12);
+  const [displayedVehicles, setDisplayedVehicles] = useState<Vehicle[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   const { vehicles, loading, error } = useVehicles({
     vehicletype: filters.type?.length ? filters.type[0] : undefined,
@@ -40,10 +51,116 @@ export default function SearchPage() {
     brand: filters.brand?.length ? filters.brand[0] : undefined,
   });
 
-  // Filter Fahrzeuge basierend auf den ausgewählten Filtern
+  // Обработка загрузки и обновлений
+  useEffect(() => {
+    if (!loading && vehicles) {
+      const filtered = vehicles
+        .filter((vehicle) => {
+          // Filter by location (case-insensitive, ignore spaces)
+          if (pickupLocation) {
+            const locs = Array.isArray(vehicle.locations)
+              ? vehicle.locations
+              : typeof vehicle.locations === 'string'
+              ? (vehicle.locations as string).split(',').map((s: string) => s.trim())
+              : [];
+            const pickup = pickupLocation.trim().toLowerCase();
+            if (!locs.map((l: string) => l.trim().toLowerCase()).includes(pickup)) {
+              return false;
+            }
+          }
+          // Filter by vehicle type
+          if (filters.type && filters.type.length > 0) {
+            const vehicleType = vehicle.vehicletype?.toLowerCase();
+            if (
+              !vehicleType ||
+              !filters.type.some((type) => type.toLowerCase() === vehicleType)
+            ) {
+              return false;
+            }
+          }
+          // Filter by brand (case-insensitive)
+          if (filters.brand && filters.brand.length > 0) {
+            const vehicleBrand = vehicle.brand?.toLowerCase();
+            if (
+              !vehicleBrand ||
+              !filters.brand.some((brand) => brand.toLowerCase() === vehicleBrand)
+            ) {
+              return false;
+            }
+          }
+          // Filter by price
+          const vehiclePrice = vehicle.priceperday || 0;
+          if (vehiclePrice < filters.minPrice || vehiclePrice > filters.maxPrice) {
+            return false;
+          }
+          // Filter by transmission type
+          if (filters.geartype && filters.geartype.length > 0) {
+            const vehicleGeartype = vehicle.geartype?.toLowerCase();
+            if (
+              !vehicleGeartype ||
+              !filters.geartype.some((t) => t.toLowerCase() === vehicleGeartype)
+            ) {
+              return false;
+            }
+          }
+          // Filter by fuel type
+          if (filters.fuel && filters.fuel.length > 0) {
+            const vehicleFuel = vehicle.fuel?.toLowerCase();
+            if (
+              !vehicleFuel ||
+              !filters.fuel.some((f) => f.toLowerCase() === vehicleFuel)
+            ) {
+              return false;
+            }
+          }
+          return true;
+        })
+        .sort((a, b) => {
+          switch (filters.sortBy) {
+            case "price_asc":
+              return (a.priceperday || 0) - (b.priceperday || 0);
+            case "price_desc":
+              return (b.priceperday || 0) - (a.priceperday || 0);
+            case "model_asc":
+              return (a.model || "").localeCompare(b.model || "");
+            case "model_desc":
+              return (b.model || "").localeCompare(a.model || "");
+            default:
+              return 0;
+          }
+        });
+
+      if (!initialLoadComplete) {
+        setDisplayedVehicles(filtered);
+        setInitialLoadComplete(true);
+        return;
+      }
+
+      const timer = setTimeout(() => {
+        setDisplayedVehicles(filtered);
+        setIsSearching(false);
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [vehicles, loading, filters, pickupLocation, dropoffLocation]);
+
+  // Filter vehicles based on selected filters, including brand and location
   const filteredVehicles = vehicles
     .filter((vehicle) => {
-      // Filterung nach Fahrzeugtyp
+      // Filter by location (case-insensitive, ignore spaces)
+      if (pickupLocation) {
+        const locs = Array.isArray(vehicle.locations)
+          ? vehicle.locations
+          : typeof vehicle.locations === 'string'
+          ? (vehicle.locations as string).split(',').map((s: string) => s.trim())
+          : [];
+        const pickup = pickupLocation.trim().toLowerCase();
+        if (!locs.map((l: string) => l.trim().toLowerCase()).includes(pickup)) {
+          return false;
+        }
+      }
+      // Filter by vehicle type
       if (filters.type && filters.type.length > 0) {
         const vehicleType = vehicle.vehicletype?.toLowerCase();
         if (
@@ -53,8 +170,7 @@ export default function SearchPage() {
           return false;
         }
       }
-
-      // Filterung nach Marke
+      // Filter by brand (case-insensitive)
       if (filters.brand && filters.brand.length > 0) {
         const vehicleBrand = vehicle.brand?.toLowerCase();
         if (
@@ -64,14 +180,12 @@ export default function SearchPage() {
           return false;
         }
       }
-
-      // Filterung nach Preis
+      // Filter by price
       const vehiclePrice = vehicle.priceperday || 0;
       if (vehiclePrice < filters.minPrice || vehiclePrice > filters.maxPrice) {
         return false;
       }
-
-      // Фильтр по типу коробки передач
+      // Filter by transmission type
       if (filters.geartype && filters.geartype.length > 0) {
         const vehicleGeartype = vehicle.geartype?.toLowerCase();
         if (
@@ -81,8 +195,7 @@ export default function SearchPage() {
           return false;
         }
       }
-
-      // Фильтр по типу топлива
+      // Filter by fuel type
       if (filters.fuel && filters.fuel.length > 0) {
         const vehicleFuel = vehicle.fuel?.toLowerCase();
         if (
@@ -92,7 +205,6 @@ export default function SearchPage() {
           return false;
         }
       }
-
       return true;
     })
     .sort((a, b) => {
@@ -112,6 +224,7 @@ export default function SearchPage() {
 
   // Aktualisiert den Filter
   const toggleTypeFilter = (type: string) => {
+    setIsSearching(true);
     setFilters((prev) => {
       const types = prev.type || [];
       if (types.includes(type)) {
@@ -124,6 +237,7 @@ export default function SearchPage() {
 
   // Aktualisiert den Markenfilter
   const toggleBrandFilter = (brand: string) => {
+    setIsSearching(true);
     setFilters((prev) => {
       const brands = prev.brand || [];
       if (brands.includes(brand)) {
@@ -136,6 +250,7 @@ export default function SearchPage() {
 
   // Aktualisiert den Preisfilter
   const handlePriceChange = (min: number, max: number) => {
+    setIsSearching(true);
     setFilters((prev) => ({
       ...prev,
       minPrice: min,
@@ -145,6 +260,7 @@ export default function SearchPage() {
 
   // Aktualisiert die Sortierung
   const handleSortChange = (sortBy: SearchFilters["sortBy"]) => {
+    setIsSearching(true);
     setFilters((prev) => ({ ...prev, sortBy }));
   };
 
@@ -233,6 +349,11 @@ export default function SearchPage() {
     });
     return Array.from(fuels);
   };
+
+  // Определяем, что показывать
+  const showLoadingSpinner = !initialLoadComplete && loading;
+  const showNoVehicles = initialLoadComplete && displayedVehicles.length === 0;
+  const showVehicles = initialLoadComplete && displayedVehicles.length > 0;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -507,46 +628,48 @@ export default function SearchPage() {
 
           {/* Rechte Spalte: Fahrzeuge */}
           <div className="flex-1">
-            {loading ? (
-              <div className="text-center py-10">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                <p className="text-gray-500 dark:text-gray-400 mt-4">
-                  Fahrzeuge werden geladen...
-                </p>
-              </div>
-            ) : error ? (
-              <div className="text-center py-10">
-                <p className="text-red-500">{error.message}</p>
-              </div>
-            ) : filteredVehicles.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-gray-500 dark:text-gray-400">
-                  Keine Fahrzeuge gefunden
-                </p>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredVehicles.slice(0, visibleCount).map((vehicle) => (
-                    <VehicleCard key={vehicle.id} vehicle={vehicle} />
-                  ))}
+            <div className="relative min-h-[400px]">
+              {showLoadingSpinner && <LoadingSpinner />}
+              
+              {error && (
+                <div className="text-center py-10">
+                  <p className="text-red-500">{error.message}</p>
                 </div>
+              )}
+              
+              {showNoVehicles && (
+                <div className="text-center py-10">
+                  <p className="text-gray-500 dark:text-gray-400">
+                    No vehicles found.
+                  </p>
+                </div>
+              )}
 
-                {visibleCount < filteredVehicles.length && (
-                  <div className="text-center mt-8">
-                    <button
-                      onClick={loadMore}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors dark:bg-blue-500 dark:hover:bg-blue-600"
-                    >
-                      Show more car
-                    </button>
-                    <div className="text-gray-400 dark:text-gray-500 text-sm mt-2">
-                      {visibleCount} / {filteredVehicles.length} car
-                    </div>
+              {showVehicles && (
+                <div 
+                  className={`transition-all duration-300 ${
+                    isSearching ? 'opacity-50 scale-98' : 'opacity-100 scale-100'
+                  }`}
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {displayedVehicles.slice(0, visibleCount).map((vehicle) => (
+                      <VehicleCard key={vehicle.id} vehicle={vehicle} />
+                    ))}
                   </div>
-                )}
-              </>
-            )}
+
+                  {visibleCount < displayedVehicles.length && (
+                    <div className="text-center mt-8">
+                      <button
+                        onClick={loadMore}
+                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors dark:bg-blue-500 dark:hover:bg-blue-600"
+                      >
+                        Show more
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </main>

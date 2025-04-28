@@ -21,7 +21,7 @@ export interface AuthContextType {
   loading: boolean;
   error: Error | null;
   handleLogout: () => Promise<void>;
-  updateProfile: (updates: Partial<User>) => Promise<void>;
+  updateProfile: (updates: Partial<User>) => Promise<User | null>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -30,7 +30,7 @@ export const AuthContext = createContext<AuthContextType>({
   loading: true,
   error: null,
   handleLogout: async () => {},
-  updateProfile: async () => {},
+  updateProfile: async () => null,
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<Error | null>(null);
 
   // Получаем профиль пользователя из таблицы profiles
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, emailFromSession?: string) => {
     try {
       setError(null);
       const { data, error } = await supabase
@@ -52,7 +52,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
 
       if (data) {
-        setUser(data as User);
+        setUser({
+          ...(data as User),
+          email: emailFromSession || data.email,
+        });
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -69,36 +72,66 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setError(null);
       if (!session?.user?.id) throw new Error("No user logged in");
 
-      // Обновляем профиль в таблице profiles
-      const { error: profileError } = await supabase
+      // Сначала обновляем email в auth.users, если он изменился
+      if (updates.email) {
+        if (updates.email !== user?.email) {
+          console.log("Перед supabase.auth.updateUser");
+          const { error: authError } = await supabase.auth.updateUser({
+            email: updates.email,
+          });
+          console.log("После supabase.auth.updateUser", authError);
+          if (authError) {
+            console.error("Ошибка обновления email в auth.users", authError);
+            throw authError;
+          }
+        }
+        // Удаляем email из updates, чтобы не обновлять его в profiles
+        delete updates.email;
+      }
+
+      console.log("Перед supabase.from('profiles').update");
+      const { data: updatedProfile, error: profileError } = await supabase
         .from("profiles")
         .update(updates)
-        .eq("id", session.user.id);
+        .eq("id", session.user.id)
+        .select()
+        .single();
+      console.log("После supabase.from('profiles').update", updatedProfile, profileError);
 
-      if (profileError) throw profileError;
-
-      // Обновляем состояние user
-      setUser((prev) => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          ...updates,
-          email: updates.email || prev.email, // Сохраняем email если он есть в updates
-        };
-      });
-
-      // Если обновляется email, обновляем его в auth.users
-      if (updates.email) {
-        const { error: authError } = await supabase.auth.updateUser({
-          email: updates.email,
-        });
-        if (authError) throw authError;
+      if (profileError) {
+        console.error("Ошибка обновления профиля в таблице profiles", profileError);
+        throw profileError;
       }
+
+      // Обновляем состояние user только после успешного обновления
+      if (updatedProfile) {
+        setUser((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            ...updatedProfile,
+          };
+        });
+      }
+
+      console.log("Профиль успешно обновлён", updatedProfile);
+      return updatedProfile;
     } catch (error) {
       console.error("Error updating profile:", error);
       setError(
-        error instanceof Error ? error : new Error("Failed to update profile")
+        error instanceof Error
+          ? error
+          : typeof error === 'object' && error !== null && 'message' in error
+          ? new Error((error as any).message)
+          : new Error(JSON.stringify(error))
       );
+      if (error instanceof Error) {
+        alert(error.message);
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        alert((error as any).message);
+      } else {
+        alert(JSON.stringify(error));
+      }
       throw error;
     }
   };
@@ -120,7 +153,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (mounted) {
           setSession(currentSession);
           if (currentSession?.user) {
-            await fetchProfile(currentSession.user.id);
+            await fetchProfile(currentSession.user.id, currentSession.user.email);
           }
         }
 
@@ -131,7 +164,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (mounted) {
             setSession(newSession);
             if (newSession?.user) {
-              await fetchProfile(newSession.user.id);
+              await fetchProfile(newSession.user.id, newSession.user.email);
             } else {
               setUser(null);
             }

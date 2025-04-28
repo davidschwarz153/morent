@@ -52,6 +52,13 @@ export default function PaymentPage() {
     total: 100,
   });
 
+  // Получаем список городов из vehicle.locations
+  const availableLocations = Array.isArray(vehicle?.locations)
+    ? vehicle.locations
+    : typeof vehicle?.locations === 'string'
+    ? (vehicle.locations as string).split(',').map((s: string) => s.trim())
+    : [];
+
   // Lade Fahrzeugdaten
   useEffect(() => {
     const loadVehicle = async () => {
@@ -494,10 +501,9 @@ export default function PaymentPage() {
                           onChange={handleRentalChange}
                           required
                         >
-                          <option value="Bremen">Bremen</option>
-                          <option value="Hamburg">Hamburg</option>
-                          <option value="Berlin">Berlin</option>
-                          <option value="München">München</option>
+                          {availableLocations.map((city) => (
+                            <option key={city} value={city}>{city}</option>
+                          ))}
                         </select>
                       </div>
                       <div>
@@ -558,10 +564,9 @@ export default function PaymentPage() {
                           onChange={handleRentalChange}
                           required
                         >
-                          <option value="Bremen">Bremen</option>
-                          <option value="Hamburg">Hamburg</option>
-                          <option value="Berlin">Berlin</option>
-                          <option value="München">München</option>
+                          {availableLocations.map((city) => (
+                            <option key={city} value={city}>{city}</option>
+                          ))}
                         </select>
                       </div>
                       <div>

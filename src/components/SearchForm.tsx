@@ -1,14 +1,5 @@
-import { useState } from "react";
-
-// Hier verwenden wir einen Mock für Standorte, da es Probleme mit useLocations gab
-const MOCK_LOCATIONS = [
-  "Berlin",
-  "München",
-  "Hamburg",
-  "Frankfurt",
-  "Köln",
-  "Stuttgart",
-];
+import { useState, useEffect } from "react";
+import { supabase } from "../lib/supabase";
 
 interface SearchFilters {
   pickupLocation: string;
@@ -36,8 +27,28 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
   const [errors, setErrors] = useState<
     Partial<Record<keyof SearchFilters, string>>
   >({});
-  const locations = MOCK_LOCATIONS;
-  const loading = false;
+  const [locations, setLocations] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      setLoading(true);
+      const { data, error } = await supabase.from("locations").select("locations");
+      if (!error && data) {
+        // If the locations field is an array, take all unique values
+        const all = data.flatMap((row: any) =>
+          Array.isArray(row.locations)
+            ? row.locations
+            : typeof row.locations === "string"
+            ? row.locations.split(",").map((s: string) => s.trim())
+            : []
+        );
+        setLocations(Array.from(new Set(all)));
+      }
+      setLoading(false);
+    };
+    fetchLocations();
+  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof SearchFilters, string>> = {};
@@ -92,6 +103,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
 
   const handleSearch = () => {
     if (validateForm()) {
+      console.log('[SearchForm] onSearch вызван с фильтрами:', filters);
       onSearch(filters);
     }
   };
@@ -173,9 +185,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
               <select
                 className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm dark:bg-gray-700 dark:text-white"
                 value={filters.dropoffLocation}
-                onChange={(e) =>
-                  handleChange("dropoffLocation", e.target.value)
-                }
+                onChange={(e) => handleChange("dropoffLocation", e.target.value)}
                 disabled={loading}
               >
                 <option value="">Bitte wählen</option>
@@ -201,9 +211,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                 className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm dark:bg-gray-700 dark:text-white"
                 value={filters.dropoffDate}
                 onChange={(e) => handleChange("dropoffDate", e.target.value)}
-                min={
-                  filters.pickupDate || new Date().toISOString().split("T")[0]
-                }
+                min={filters.pickupDate || new Date().toISOString().split("T")[0]}
               />
               {errors.dropoffDate && (
                 <p className="mt-1 text-sm text-red-500">
@@ -234,6 +242,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
 
       <div className="mt-6 text-center">
         <button
+          type="button"
           onClick={handleSearch}
           className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium dark:bg-blue-500 dark:hover:bg-blue-600"
         >

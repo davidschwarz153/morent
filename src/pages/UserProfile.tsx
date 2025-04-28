@@ -13,6 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 // Тип для бронирования с данными автомобиля
+// -> Buchungstyp mit Fahrzeugdaten
 type BookingWithVehicle = Booking & { vehicles: Vehicle | null };
 
 const UserProfile = () => {
@@ -36,6 +37,7 @@ const UserProfile = () => {
   const [isUploading, setIsUploading] = useState(false);
 
   // Функция загрузки профиля
+  // -> Profil-Ladefunktion
   const loadProfile = useCallback(
     async (userId: string) => {
       try {
@@ -59,6 +61,7 @@ const UserProfile = () => {
   );
 
   // Функция загрузки бронирований
+  // -> Funktion zum Laden der Buchungen
   const loadBookings = useCallback(async (userId: string) => {
     try {
       const data = await getUserBookings(userId);
@@ -70,22 +73,28 @@ const UserProfile = () => {
   }, []);
 
   // Загрузка данных при доступности пользователя
+  // -> Daten werden geladen, wenn der Benutzer verfügbar ist
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/login");
     } else if (!authLoading && user) {
       setIsLoading(true);
       setError(null);
-      Promise.all([loadProfile(user.id), loadBookings(user.id)])
+      Promise.all([
+        loadProfile(user.id),
+        loadBookings(user.id)
+      ])
         .catch((err) => {
-          // Ошибки уже обрабатываются внутри loadProfile/loadBookings и записываются в setError
           console.error("Error loading profile/bookings:", err);
         })
         .finally(() => setIsLoading(false));
     }
-  }, [user, authLoading, navigate, loadProfile, loadBookings]);
+    // ВАЖНО: не добавлять loadProfile и loadBookings в зависимости, чтобы не было циклов
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authLoading, navigate]);
 
   // Обработка изменений формы
+  // -> Formularänderungen verarbeiten
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -109,53 +118,25 @@ const UserProfile = () => {
   };
 
   // Сохранение профиля
+  // -> Profil speichern
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !session) return;
+    console.log("handleSaveProfile called", { user, session, formData });
+    if (!user || !session) {
+      console.error("Нет пользователя или сессии", { user, session });
+      setError("Нет пользователя или сессии");
+      return;
+    }
 
     setIsSaving(true);
     setError(null);
     let avatarUrl = profile?.avatar_url;
 
     try {
-      // Проверяем соединение с Supabase
-      const { error: healthError } = await supabase.rpc("health");
-      if (healthError) {
-        console.error("Supabase connection error:", healthError);
-        // Пробуем обновить сессию
-        const { error: sessionError } = await supabase.auth.getSession();
-        if (sessionError) {
-          throw new Error("Connection error. Please refresh the page.");
-        }
-      }
-
-      // 1. Обновление email если он изменился
-      if (formData.email && formData.email !== user.email) {
-        const { error: emailError } = await supabase.auth.updateUser({
-          email: formData.email,
-        });
-
-        if (emailError) {
-          // Пробуем обновить сессию и повторить
-          const { error: sessionError } = await supabase.auth.getSession();
-          if (sessionError) {
-            throw new Error("Failed to update email. Please refresh the page.");
-          }
-          // Повторяем попытку обновления email
-          const { error: retryError } = await supabase.auth.updateUser({
-            email: formData.email,
-          });
-          if (retryError) {
-            throw new Error(
-              "Failed to update email after retry. Please refresh the page."
-            );
-          }
-        }
-      }
-
-      // 2. Загрузка нового аватара (если выбран)
       if (avatarFile) {
+        console.log("Перед uploadAvatar");
         const uploadedUrl = await uploadAvatar(user.id, avatarFile);
+        console.log("После uploadAvatar", uploadedUrl);
         if (uploadedUrl) {
           avatarUrl = uploadedUrl;
         } else {
@@ -163,77 +144,56 @@ const UserProfile = () => {
         }
       }
 
-      // 3. Проверяем существование профиля
-      const { data: existingProfile, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (profileError && profileError.code !== "PGRST116") {
-        throw new Error(`Failed to check profile: ${profileError.message}`);
-      }
-
-      // 4. Создаем или обновляем профиль
       const profileData = {
-        id: user.id,
         full_name: formData.fullName || null,
         last_name: formData.lastName || null,
         phone_number: formData.phoneNumber || null,
         avatar_url: avatarUrl || null,
-        email: formData.email || user.email,
-        updated_at: new Date().toISOString(),
       };
+      console.log("Перед updateProfile", profileData);
 
-      if (!existingProfile) {
-        // Создаем новый профиль
-        const { error: insertError } = await supabase
-          .from("profiles")
-          .insert([profileData]);
+      const updatedProfile = await updateProfile(profileData);
+      console.log("После updateProfile", updatedProfile);
 
-        if (insertError) {
-          throw new Error(`Failed to create profile: ${insertError.message}`);
-        }
-      } else {
-        // Обновляем существующий профиль
-        const { error: updateError } = await supabase
-          .from("profiles")
-          .update(profileData)
-          .eq("id", user.id);
-
-        if (updateError) {
-          throw new Error(`Failed to update profile: ${updateError.message}`);
-        }
+      if (!updatedProfile) {
+        throw new Error("Failed to update profile");
       }
 
-      // 5. Обновляем данные в контексте
-      await updateProfile(profileData);
-
-      // 6. Обновление локального состояния
+      setProfile(updatedProfile);
       setAvatarFile(null);
       setAvatarPreview(avatarUrl || null);
       setFormData({
-        fullName: formData.fullName || "",
-        lastName: formData.lastName || "",
-        phoneNumber: formData.phoneNumber || "",
-        email: formData.email || user?.email || "",
+        fullName: updatedProfile.full_name || "",
+        lastName: updatedProfile.last_name || "",
+        phoneNumber: updatedProfile.phone_number || "",
+        email: user?.email || "",
       });
-
-      // 7. Принудительное обновление профиля
-      await loadProfile(user.id);
 
       setEditMode(false);
     } catch (error: unknown) {
       console.error("Error in handleSaveProfile:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      setError(`Error saving profile: ${errorMessage}`);
+      if (error instanceof Error) {
+        alert(error.message);
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        alert((error as any).message);
+      } else {
+        alert(JSON.stringify(error));
+      }
+      setError(
+        `Error saving profile: ` +
+          (error instanceof Error
+            ? error.message
+            : typeof error === 'object' && error !== null && 'message' in error
+            ? (error as any).message
+            : JSON.stringify(error))
+      );
     } finally {
       setIsSaving(false);
     }
   };
 
   // Функция загрузки аватара
+  // -> Avatar-Upload-Funktion
   const uploadAvatar = async (
     userId: string,
     file: File
@@ -290,6 +250,7 @@ const UserProfile = () => {
   };
 
   // Фильтрация бронирований
+  // -> Buchungsfilterung
   const upcomingBookings = bookings.filter(
     (b) => new Date(b.pickup_date) >= new Date()
   );
@@ -298,6 +259,7 @@ const UserProfile = () => {
   );
 
   // --- Рендеринг --- //
+  // -> --- Rendering --- //
   if (authLoading || isLoading) {
     return (
       <div className="flex flex-col min-h-screen">
@@ -332,7 +294,7 @@ const UserProfile = () => {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Секция Профиля */}
+          {/* Sektion Profil */}
           <div className="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm h-fit">
             {" "}
             {/* h-fit чтобы блок не растягивался */}
@@ -501,9 +463,9 @@ const UserProfile = () => {
             </div>
           </div>
 
-          {/* Секция Бронирований */}
+          {/* Sektion Buchungen */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Предстоящие бронирования */}
+            {/* Vorstehende Buchungen */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
               <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
                 Upcoming Bookings
@@ -521,7 +483,7 @@ const UserProfile = () => {
               )}
             </div>
 
-            {/* Прошедшие бронирования */}
+            {/* Vergangene Buchungen */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
               <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
                 Booking History
@@ -546,7 +508,8 @@ const UserProfile = () => {
   );
 };
 
-// Компонент для отображения карточки бронирования (можно вынести в отдельный файл)
+// Komponente zur Anzeige der Buchungskarte (kann in eine separate Datei ausgelagert werden)
+// -> Komponente zur Anzeige der Buchungskarte (kann in eine separate Datei ausgelagert werden)
 const BookingCard = ({ booking }: { booking: BookingWithVehicle }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("en-US", {
@@ -600,7 +563,6 @@ const BookingCard = ({ booking }: { booking: BookingWithVehicle }) => {
         <p className="font-semibold text-gray-900 dark:text-white">
           ${booking.total_price.toFixed(2)}
         </p>
-        {/* Можно добавить кнопку для просмотра деталей бронирования */}
       </div>
     </div>
   );
