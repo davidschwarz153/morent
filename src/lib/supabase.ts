@@ -82,12 +82,18 @@ export type Booking = {
   updated_at: string;
   payment_method?: "credit" | "paypal" | "bitcoin";
   payment_info?: {
-    cardNumber?: string;
-    cardHolder?: string;
-    expiryDate?: string;
-    cvv?: string;
-    email?: string;
-    walletAddress?: string;
+    credit?: {
+      cardNumber?: string;
+      cardHolder?: string;
+      expiryDate?: string;
+      cvv?: string;
+    };
+    paypal?: {
+      email?: string;
+    };
+    bitcoin?: {
+      walletAddress?: string;
+    };
   };
 };
 

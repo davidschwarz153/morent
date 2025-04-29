@@ -41,7 +41,7 @@ export default function PaymentPage() {
   >("credit");
 
   const [paymentInfo, setPaymentInfo] = useState({
-    creditCard: {
+    credit: {
       cardNumber: "",
       cardHolder: "",
       expiryDate: "",
@@ -228,7 +228,7 @@ export default function PaymentPage() {
     } else if (currentStep === "payment") {
       // Überprüfe, ob alle erforderlichen Zahlungsinformationen eingegeben wurden
       if (paymentMethod === "credit") {
-        const { cardNumber, cardHolder, expiryDate, cvv } = paymentInfo.creditCard;
+        const { cardNumber, cardHolder, expiryDate, cvv } = paymentInfo.credit;
         if (!cardNumber || !cardHolder || !expiryDate || !cvv) {
           alert("Bitte füllen Sie alle Kreditkarteninformationen aus.");
           return;
@@ -301,7 +301,9 @@ export default function PaymentPage() {
       total_price: priceDetails.total,
       status: "confirmed" as const,
       payment_method: paymentMethod,
-      payment_info: paymentInfo[paymentMethod],
+      payment_info: {
+        [paymentMethod]: paymentInfo[paymentMethod]
+      },
     };
 
     setLoading(true);
@@ -755,7 +757,7 @@ export default function PaymentPage() {
                               name="cardNumber"
                               placeholder="1234 5678 9012 3456"
                               className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                              value={paymentInfo.creditCard.cardNumber}
+                              value={paymentInfo.credit.cardNumber}
                               onChange={handlePaymentInfoChange}
                               required
                             />
@@ -773,7 +775,7 @@ export default function PaymentPage() {
                               name="cardHolder"
                               placeholder="Max Mustermann"
                               className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                              value={paymentInfo.creditCard.cardHolder}
+                              value={paymentInfo.credit.cardHolder}
                               onChange={handlePaymentInfoChange}
                               required
                             />
@@ -792,7 +794,7 @@ export default function PaymentPage() {
                                 name="expiryDate"
                                 placeholder="MM/YY"
                                 className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                value={paymentInfo.creditCard.expiryDate}
+                                value={paymentInfo.credit.expiryDate}
                                 onChange={handlePaymentInfoChange}
                                 required
                               />
@@ -810,7 +812,7 @@ export default function PaymentPage() {
                                 name="cvv"
                                 placeholder="123"
                                 className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                value={paymentInfo.creditCard.cvv}
+                                value={paymentInfo.credit.cvv}
                                 onChange={handlePaymentInfoChange}
                                 required
                               />
