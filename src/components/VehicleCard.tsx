@@ -49,7 +49,7 @@ export default function VehicleCard({ vehicle }: VehicleCardProps) {
           </div>
           <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
             <FaCar className="mr-1" />
-            <span>{vehicle.geartype || "Manual"}</span>
+            <span>{vehicle.geartype || "Manuel"}</span>
           </div>
           <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
             <FaUserFriends className="mr-1" />

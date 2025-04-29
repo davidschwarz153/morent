@@ -7,14 +7,32 @@ import { MdSwapVert } from "react-icons/md";
 import { Vehicle } from "../lib/supabase";
 
 interface SearchFilters {
-  type?: string[];
+  type?: (
+    | "Sedan"
+    | "Hatchback"
+    | "Van"
+    | "SUV"
+    | "Electric car"
+    | "Sportscar"
+  )[];
   maxPrice: number;
   brand?: string[];
   minPrice: number;
-  geartype?: string[];
-  fuel?: string[];
+  geartype?: ("Manuel" | "Automatic")[];
+  fuel?: ("Gasoline" | "Diesel" | "Electrical")[];
   sortBy?: "price_asc" | "price_desc" | "model_asc" | "model_desc";
 }
+
+const VEHICLE_TYPES = [
+  "Sedan",
+  "Hatchback",
+  "Van",
+  "SUV",
+  "Electric car",
+  "Sportscar",
+] as const;
+const GEAR_TYPES = ["Manuel", "Automatic"] as const;
+const FUEL_TYPES = ["Gasoline", "Diesel", "Electrical"] as const;
 
 const LoadingSpinner = () => (
   <div className="text-center py-10">
@@ -44,11 +62,14 @@ export default function SearchPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
-  const { vehicles, loading, error } = useVehicles({
-    vehicletype: filters.type?.length ? filters.type[0] : undefined,
-    maxPrice: filters.maxPrice,
+  const { vehicles, allVehicles, loading, error } = useVehicles({
+    brand: filters.brand,
+    vehicletype: filters.type,
     minPrice: filters.minPrice,
-    brand: filters.brand?.length ? filters.brand[0] : undefined,
+    maxPrice: filters.maxPrice,
+    geartype: filters.geartype,
+    fuel: filters.fuel,
+    sortBy: filters.sortBy,
   });
 
   // Обработка загрузки и обновлений
@@ -60,55 +81,14 @@ export default function SearchPage() {
           if (pickupLocation) {
             const locs = Array.isArray(vehicle.locations)
               ? vehicle.locations
-              : typeof vehicle.locations === 'string'
-              ? (vehicle.locations as string).split(',').map((s: string) => s.trim())
+              : typeof vehicle.locations === "string"
+              ? (vehicle.locations as string)
+                  .split(",")
+                  .map((s: string) => s.trim())
               : [];
             const pickup = pickupLocation.trim().toLowerCase();
-            if (!locs.map((l: string) => l.trim().toLowerCase()).includes(pickup)) {
-              return false;
-            }
-          }
-          // Filter by vehicle type
-          if (filters.type && filters.type.length > 0) {
-            const vehicleType = vehicle.vehicletype?.toLowerCase();
             if (
-              !vehicleType ||
-              !filters.type.some((type) => type.toLowerCase() === vehicleType)
-            ) {
-              return false;
-            }
-          }
-          // Filter by brand (case-insensitive)
-          if (filters.brand && filters.brand.length > 0) {
-            const vehicleBrand = vehicle.brand?.toLowerCase();
-            if (
-              !vehicleBrand ||
-              !filters.brand.some((brand) => brand.toLowerCase() === vehicleBrand)
-            ) {
-              return false;
-            }
-          }
-          // Filter by price
-          const vehiclePrice = vehicle.priceperday || 0;
-          if (vehiclePrice < filters.minPrice || vehiclePrice > filters.maxPrice) {
-            return false;
-          }
-          // Filter by transmission type
-          if (filters.geartype && filters.geartype.length > 0) {
-            const vehicleGeartype = vehicle.geartype?.toLowerCase();
-            if (
-              !vehicleGeartype ||
-              !filters.geartype.some((t) => t.toLowerCase() === vehicleGeartype)
-            ) {
-              return false;
-            }
-          }
-          // Filter by fuel type
-          if (filters.fuel && filters.fuel.length > 0) {
-            const vehicleFuel = vehicle.fuel?.toLowerCase();
-            if (
-              !vehicleFuel ||
-              !filters.fuel.some((f) => f.toLowerCase() === vehicleFuel)
+              !locs.map((l: string) => l.trim().toLowerCase()).includes(pickup)
             ) {
               return false;
             }
@@ -145,85 +125,8 @@ export default function SearchPage() {
     }
   }, [vehicles, loading, filters, pickupLocation, dropoffLocation]);
 
-  // Filter vehicles based on selected filters, including brand and location
-  const filteredVehicles = vehicles
-    .filter((vehicle) => {
-      // Filter by location (case-insensitive, ignore spaces)
-      if (pickupLocation) {
-        const locs = Array.isArray(vehicle.locations)
-          ? vehicle.locations
-          : typeof vehicle.locations === 'string'
-          ? (vehicle.locations as string).split(',').map((s: string) => s.trim())
-          : [];
-        const pickup = pickupLocation.trim().toLowerCase();
-        if (!locs.map((l: string) => l.trim().toLowerCase()).includes(pickup)) {
-          return false;
-        }
-      }
-      // Filter by vehicle type
-      if (filters.type && filters.type.length > 0) {
-        const vehicleType = vehicle.vehicletype?.toLowerCase();
-        if (
-          !vehicleType ||
-          !filters.type.some((type) => type.toLowerCase() === vehicleType)
-        ) {
-          return false;
-        }
-      }
-      // Filter by brand (case-insensitive)
-      if (filters.brand && filters.brand.length > 0) {
-        const vehicleBrand = vehicle.brand?.toLowerCase();
-        if (
-          !vehicleBrand ||
-          !filters.brand.some((brand) => brand.toLowerCase() === vehicleBrand)
-        ) {
-          return false;
-        }
-      }
-      // Filter by price
-      const vehiclePrice = vehicle.priceperday || 0;
-      if (vehiclePrice < filters.minPrice || vehiclePrice > filters.maxPrice) {
-        return false;
-      }
-      // Filter by transmission type
-      if (filters.geartype && filters.geartype.length > 0) {
-        const vehicleGeartype = vehicle.geartype?.toLowerCase();
-        if (
-          !vehicleGeartype ||
-          !filters.geartype.some((t) => t.toLowerCase() === vehicleGeartype)
-        ) {
-          return false;
-        }
-      }
-      // Filter by fuel type
-      if (filters.fuel && filters.fuel.length > 0) {
-        const vehicleFuel = vehicle.fuel?.toLowerCase();
-        if (
-          !vehicleFuel ||
-          !filters.fuel.some((f) => f.toLowerCase() === vehicleFuel)
-        ) {
-          return false;
-        }
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      switch (filters.sortBy) {
-        case "price_asc":
-          return (a.priceperday || 0) - (b.priceperday || 0);
-        case "price_desc":
-          return (b.priceperday || 0) - (a.priceperday || 0);
-        case "model_asc":
-          return (a.model || "").localeCompare(b.model || "");
-        case "model_desc":
-          return (b.model || "").localeCompare(a.model || "");
-        default:
-          return 0;
-      }
-    });
-
   // Aktualisiert den Filter
-  const toggleTypeFilter = (type: string) => {
+  const toggleTypeFilter = (type: (typeof VEHICLE_TYPES)[number]) => {
     setIsSearching(true);
     setFilters((prev) => {
       const types = prev.type || [];
@@ -284,10 +187,10 @@ export default function SearchPage() {
     setVisibleCount((prev) => prev + 8);
   };
 
-  // Получаем уникальные марки автомобилей
+  // Получаем уникальные марки автомобилей из всех автомобилей
   const getUniqueBrands = () => {
     const brands = new Set<string>();
-    vehicles.forEach((vehicle) => {
+    allVehicles.forEach((vehicle) => {
       if (vehicle.brand) {
         brands.add(vehicle.brand.toLowerCase());
       }
@@ -296,18 +199,21 @@ export default function SearchPage() {
   };
 
   // Добавляем функции для фильтров
-  const toggleGeartypeFilter = (geartype: string) => {
+  const toggleGeartypeFilter = (geartype: (typeof GEAR_TYPES)[number]) => {
+    console.log("Toggling gear type:", geartype);
     setFilters((prev) => {
-      const geartypes = prev.geartype || [];
-      if (geartypes.includes(geartype)) {
-        return { ...prev, geartype: geartypes.filter((t) => t !== geartype) };
-      } else {
-        return { ...prev, geartype: [...geartypes, geartype] };
-      }
+      const currentGeartypes = Array.isArray(prev.geartype)
+        ? prev.geartype
+        : [];
+      const newGeartypes = currentGeartypes.includes(geartype)
+        ? currentGeartypes.filter((t) => t !== geartype)
+        : [...currentGeartypes, geartype];
+      console.log("New gear types:", newGeartypes);
+      return { ...prev, geartype: newGeartypes };
     });
   };
 
-  const toggleFuelFilter = (fuel: string) => {
+  const toggleFuelFilter = (fuel: (typeof FUEL_TYPES)[number]) => {
     setFilters((prev) => {
       const fuels = prev.fuel || [];
       if (fuels.includes(fuel)) {
@@ -320,34 +226,16 @@ export default function SearchPage() {
 
   // Получаем уникальные типы автомобилей
   const getUniqueTypes = () => {
-    const types = new Set<string>();
-    vehicles.forEach((vehicle) => {
-      if (vehicle.vehicletype) {
-        types.add(vehicle.vehicletype.toLowerCase());
-      }
-    });
-    return Array.from(types);
+    return VEHICLE_TYPES;
   };
 
   // Добавляем функции для получения уникальных значений
   const getUniqueGeartypes = () => {
-    const geartypes = new Set<string>();
-    vehicles.forEach((vehicle) => {
-      if (vehicle.geartype) {
-        geartypes.add(vehicle.geartype.toLowerCase());
-      }
-    });
-    return Array.from(geartypes);
+    return GEAR_TYPES;
   };
 
   const getUniqueFuels = () => {
-    const fuels = new Set<string>();
-    vehicles.forEach((vehicle) => {
-      if (vehicle.fuel) {
-        fuels.add(vehicle.fuel.toLowerCase());
-      }
-    });
-    return Array.from(fuels);
+    return FUEL_TYPES;
   };
 
   // Определяем, что показывать
@@ -560,14 +448,20 @@ export default function SearchPage() {
                         type="checkbox"
                         id={`type-${type}`}
                         className="h-4 w-4 text-blue-600 dark:text-blue-400"
-                        checked={filters.type?.includes(type)}
-                        onChange={() => toggleTypeFilter(type)}
+                        checked={filters.type?.includes(
+                          type as (typeof VEHICLE_TYPES)[number]
+                        )}
+                        onChange={() =>
+                          toggleTypeFilter(
+                            type as (typeof VEHICLE_TYPES)[number]
+                          )
+                        }
                       />
                       <label
                         htmlFor={`type-${type}`}
                         className="ml-2 text-sm text-gray-700 dark:text-white"
                       >
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                        {type}
                       </label>
                     </div>
                   ))}
@@ -585,14 +479,20 @@ export default function SearchPage() {
                         type="checkbox"
                         id={`geartype-${geartype}`}
                         className="h-4 w-4 text-blue-600 dark:text-blue-400"
-                        checked={filters.geartype?.includes(geartype)}
-                        onChange={() => toggleGeartypeFilter(geartype)}
+                        checked={
+                          Array.isArray(filters.geartype) &&
+                          filters.geartype.includes(geartype)
+                        }
+                        onChange={() => {
+                          console.log("Checkbox changed for:", geartype);
+                          toggleGeartypeFilter(geartype);
+                        }}
                       />
                       <label
                         htmlFor={`geartype-${geartype}`}
                         className="ml-2 text-sm text-gray-700 dark:text-white"
                       >
-                        {geartype.charAt(0).toUpperCase() + geartype.slice(1)}
+                        {geartype}
                       </label>
                     </div>
                   ))}
@@ -610,14 +510,18 @@ export default function SearchPage() {
                         type="checkbox"
                         id={`fuel-${fuel}`}
                         className="h-4 w-4 text-blue-600 dark:text-blue-400"
-                        checked={filters.fuel?.includes(fuel)}
-                        onChange={() => toggleFuelFilter(fuel)}
+                        checked={filters.fuel?.includes(
+                          fuel as (typeof FUEL_TYPES)[number]
+                        )}
+                        onChange={() =>
+                          toggleFuelFilter(fuel as (typeof FUEL_TYPES)[number])
+                        }
                       />
                       <label
                         htmlFor={`fuel-${fuel}`}
                         className="ml-2 text-sm text-gray-700 dark:text-white"
                       >
-                        {fuel.charAt(0).toUpperCase() + fuel.slice(1)}
+                        {fuel}
                       </label>
                     </div>
                   ))}
@@ -630,13 +534,13 @@ export default function SearchPage() {
           <div className="flex-1">
             <div className="relative min-h-[400px]">
               {showLoadingSpinner && <LoadingSpinner />}
-              
+
               {error && (
                 <div className="text-center py-10">
                   <p className="text-red-500">{error.message}</p>
                 </div>
               )}
-              
+
               {showNoVehicles && (
                 <div className="text-center py-10">
                   <p className="text-gray-500 dark:text-gray-400">
@@ -646,9 +550,11 @@ export default function SearchPage() {
               )}
 
               {showVehicles && (
-                <div 
+                <div
                   className={`transition-all duration-300 ${
-                    isSearching ? 'opacity-50 scale-98' : 'opacity-100 scale-100'
+                    isSearching
+                      ? "opacity-50 scale-98"
+                      : "opacity-100 scale-100"
                   }`}
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
