@@ -80,6 +80,15 @@ export type Booking = {
   status: "pending" | "confirmed" | "cancelled" | "completed";
   created_at: string;
   updated_at: string;
+  payment_method?: "credit" | "paypal" | "bitcoin";
+  payment_info?: {
+    cardNumber?: string;
+    cardHolder?: string;
+    expiryDate?: string;
+    cvv?: string;
+    email?: string;
+    walletAddress?: string;
+  };
 };
 
 // Добавляем тип Profile

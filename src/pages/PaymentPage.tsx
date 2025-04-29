@@ -40,6 +40,21 @@ export default function PaymentPage() {
     "credit" | "paypal" | "bitcoin"
   >("credit");
 
+  const [paymentInfo, setPaymentInfo] = useState({
+    creditCard: {
+      cardNumber: "",
+      cardHolder: "",
+      expiryDate: "",
+      cvv: "",
+    },
+    paypal: {
+      email: "",
+    },
+    bitcoin: {
+      walletAddress: "",
+    },
+  });
+
   const [agreements, setAgreements] = useState({
     marketing: false,
     terms: false,
@@ -161,6 +176,17 @@ export default function PaymentPage() {
     setPaymentMethod(method);
   };
 
+  const handlePaymentInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPaymentInfo((prev) => ({
+      ...prev,
+      [paymentMethod]: {
+        ...prev[paymentMethod],
+        [name]: value,
+      },
+    }));
+  };
+
   const handleAgreementChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
     setAgreements((prev) => ({ ...prev, [name]: checked }));
@@ -200,6 +226,27 @@ export default function PaymentPage() {
 
       setCurrentStep("payment");
     } else if (currentStep === "payment") {
+      // Überprüfe, ob alle erforderlichen Zahlungsinformationen eingegeben wurden
+      if (paymentMethod === "credit") {
+        const { cardNumber, cardHolder, expiryDate, cvv } = paymentInfo.creditCard;
+        if (!cardNumber || !cardHolder || !expiryDate || !cvv) {
+          alert("Bitte füllen Sie alle Kreditkarteninformationen aus.");
+          return;
+        }
+      } else if (paymentMethod === "paypal") {
+        const { email } = paymentInfo.paypal;
+        if (!email) {
+          alert("Bitte geben Sie Ihre PayPal-E-Mail-Adresse ein.");
+          return;
+        }
+      } else if (paymentMethod === "bitcoin") {
+        const { walletAddress } = paymentInfo.bitcoin;
+        if (!walletAddress) {
+          alert("Bitte geben Sie Ihre Bitcoin-Wallet-Adresse ein.");
+          return;
+        }
+      }
+      
       setCurrentStep("confirmation");
     } else if (currentStep === "confirmation") {
       completeRental();
@@ -253,6 +300,8 @@ export default function PaymentPage() {
       dropoff_date: dropoffDateTime,
       total_price: priceDetails.total,
       status: "confirmed" as const,
+      payment_method: paymentMethod,
+      payment_info: paymentInfo[paymentMethod],
     };
 
     setLoading(true);
@@ -687,6 +736,90 @@ export default function PaymentPage() {
                       </div>
                     </div>
 
+                    {paymentMethod === "credit" && (
+                      <div className="mt-4 p-4 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
+                          Kreditkarteninformationen
+                        </h3>
+                        <div className="space-y-4">
+                          <div>
+                            <label
+                              htmlFor="cardNumber"
+                              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                            >
+                              Kartennummer
+                            </label>
+                            <input
+                              type="text"
+                              id="cardNumber"
+                              name="cardNumber"
+                              placeholder="1234 5678 9012 3456"
+                              className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                              value={paymentInfo.creditCard.cardNumber}
+                              onChange={handlePaymentInfoChange}
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="cardHolder"
+                              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                            >
+                              Name auf der Karte
+                            </label>
+                            <input
+                              type="text"
+                              id="cardHolder"
+                              name="cardHolder"
+                              placeholder="Max Mustermann"
+                              className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                              value={paymentInfo.creditCard.cardHolder}
+                              onChange={handlePaymentInfoChange}
+                              required
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label
+                                htmlFor="expiryDate"
+                                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                              >
+                                Ablaufdatum
+                              </label>
+                              <input
+                                type="text"
+                                id="expiryDate"
+                                name="expiryDate"
+                                placeholder="MM/YY"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                value={paymentInfo.creditCard.expiryDate}
+                                onChange={handlePaymentInfoChange}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label
+                                htmlFor="cvv"
+                                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                              >
+                                CVV
+                              </label>
+                              <input
+                                type="text"
+                                id="cvv"
+                                name="cvv"
+                                placeholder="123"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                value={paymentInfo.creditCard.cvv}
+                                onChange={handlePaymentInfoChange}
+                                required
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex items-center p-3 border dark:border-gray-600 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
                       <input
                         type="radio"
@@ -709,6 +842,35 @@ export default function PaymentPage() {
                       />
                     </div>
 
+                    {paymentMethod === "paypal" && (
+                      <div className="mt-4 p-4 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
+                          PayPal-Informationen
+                        </h3>
+                        <div>
+                          <label
+                            htmlFor="email"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                          >
+                            PayPal-E-Mail
+                          </label>
+                          <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="ihre.email@beispiel.de"
+                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                            value={paymentInfo.paypal.email}
+                            onChange={handlePaymentInfoChange}
+                            required
+                          />
+                        </div>
+                        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+                          Sie werden nach der Bestätigung zur PayPal-Anmeldung weitergeleitet.
+                        </p>
+                      </div>
+                    )}
+
                     <div className="flex items-center p-3 border dark:border-gray-600 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
                       <input
                         type="radio"
@@ -730,6 +892,35 @@ export default function PaymentPage() {
                         className="h-6"
                       />
                     </div>
+
+                    {paymentMethod === "bitcoin" && (
+                      <div className="mt-4 p-4 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
+                          Bitcoin-Zahlungsinformationen
+                        </h3>
+                        <div>
+                          <label
+                            htmlFor="walletAddress"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                          >
+                            Bitcoin-Wallet-Adresse
+                          </label>
+                          <input
+                            type="text"
+                            id="walletAddress"
+                            name="walletAddress"
+                            placeholder="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                            value={paymentInfo.bitcoin.walletAddress}
+                            onChange={handlePaymentInfoChange}
+                            required
+                          />
+                        </div>
+                        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+                          Nach der Bestätigung erhalten Sie eine Bitcoin-Adresse, an die Sie den Betrag überweisen können.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex justify-between">
